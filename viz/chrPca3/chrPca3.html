@@ -1,0 +1,150 @@
+<html>
+<head>
+	<meta charset="UTF-8"/>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script src="chrPca3.js"></script>
+	<title>xy</title>
+	<style>
+	svg{
+		background-color: #eee;
+	}
+
+	g.point circle,
+	g.point text {
+	  vector-effect: non-scaling-stroke;
+	}
+
+	</style>
+</head>
+
+<body>
+<div>
+<p>scroll to zoom, drag to pan</p>
+<svg id='plot1' width=500 height=500>
+</svg>
+</div>
+<script>
+'use strict';
+
+var zoom = d3.zoom()
+    .scaleExtent([0.1, 1000])
+    .on("zoom", zoomed('#plot1'));
+
+
+function zoomed(svgId){
+	return function(){
+		 d3.select(svgId).select('g.container')
+		.attr("transform", d3.event.transform );
+		var points = d3.select('#plot1').selectAll('g.point');
+		points.each(function(d){
+			//update new scale to make circle area not changed
+			var p = points.filter(function(d1){return d.tag==d1.tag});
+			var t = p.attr('transform')
+			
+
+			if (t.indexOf('scale') == -1) 
+				t += ' scale(1)';
+			t = t.replace(/scale\(\d+\.?\d*\)/, 'scale(' + 1/d3.event.transform.k + ')');
+			p.attr('transform', t);
+		})
+	}
+
+	
+
+}
+
+
+var color = d3.scaleOrdinal().domain(d3.range(10))
+    .range(d3.schemeCategory10);
+
+
+function plot(	svg, data, 
+  pointStyle={}, 
+  textStyle={}){
+
+
+	var width = svg.attr('width');
+	var height = svg.attr('height');
+	var g = svg.append('g').attr('class','container');
+
+
+	svg.append("rect")
+	.attr("width", width)
+    .attr("height", height)
+    .style("fill", "none")
+    .style("pointer-events", "all")
+	.call(zoom);
+
+
+	var sx = d3.scaleLinear()
+	.domain(d3.extent(data, function(d){return d.x}))
+	.range([width*0.1, width*0.9]);
+	var sy = d3.scaleLinear()
+	.domain(d3.extent(data, function(d){return d.x}))
+	.range([height*0.9,height*0.1]);
+
+	var points = g.selectAll('g.point').data(data).enter()
+	.append('g').attr('class', 'point')
+	.attr('transform', function(d){
+		return 'translate('+sx(d.x)+','+sy(d.y)+')'});
+
+	var circles = points.append('circle')
+	//.attr('cx', function(d){return sx(d.x)})
+	//.attr('cy', function(d){return sy(d.y)})
+	.attr('r', 12)
+	.attr('stroke',function(d){
+		return color(d.cat);
+	})
+	.attr('stroke-width',5);
+
+	var stride = circles.attr('r')*2*3.14159 / 10;
+	var catCount = d3.max(data, function(d){return d.cat})+1;
+	
+circles
+	.attr('stroke-dasharray',stride+','+stride*(catCount-1))
+	.attr('stroke-dashoffset',function(d){return d.cat*stride;})
+	.attr('fill','none')
+	.attr('opacity',0.7);
+	
+
+	//additional styles
+	for (var k in pointStyle) {
+        circles.attr(k, pointStyle[k]);
+    }
+	
+	
+	g.selectAll('circle').append('title')
+	.text(function(d){return d.tag});
+
+	var txt = points.append('text')
+	.text(function(d){return d.tag})
+	.attr('transform',function(d){
+		var dx=0,dy=0;
+		if (d.cat == 1){
+			dx = 0;
+			dy = -20;
+		}
+		return 'translate('+dx+','+dy+')'
+	})
+	.attr('text-anchor', 'middle')
+	.attr('alignment-baseline', 'central')
+	//.attr('alignment-baseline', 'middle')
+	.attr('font-family','monospace')
+	.attr('fill', function(d){
+		return d3.color(color(d.cat)).darker();
+	});
+
+	for (var k in textStyle) {
+        txt.attr(k, textStyle[k]);
+    }
+}
+
+plot(d3.select('#plot1'), data, 
+{}//,
+//{'fill':'black'}
+ )
+</script>
+
+
+</body>
+</html>

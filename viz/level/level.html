@@ -1,0 +1,115 @@
+<html>
+<head>
+	<meta charset="UTF-8"/>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script src='data.js'></script>
+	<title>title</title>
+	<style>
+	</style>
+</head>
+
+<body>
+<div>
+<button onclick='if(!done) split(selection)'>split</button>
+<button onclick='if(!done) collapse(groupSelection)'>collapse</button>
+</div>
+<svg width='500' height='500'></svg>
+
+<script>
+var aniDur = 300;
+var done = true;
+d3.selection.prototype.drawNode = function(){
+	return this.attr('cx', function(d){return d.x;})
+				.attr('cy', function(d){return d.y;})
+				.attr('r',function(d){return 20/(d.level+1)})
+				.attr('fill', function(d){return color(d.level);})
+				.on('click',clickNode);
+};
+d3.transition.prototype.drawNode = d3.selection.prototype.drawNode;
+
+
+function split(selection){
+	var id = selection.data()[0].id;
+	var data1 = data.filter(function(d){ return d.parent == id;});
+	var data0 = data1.map(function(d){
+		var r = Object.assign({}, selection.data()[0]);
+		r['level'] = d.level;
+		return r;
+	});
+	
+	selection.remove();
+	svg.selectAll('x').data(data0).enter().append('circle').drawNode().data(data1)
+	.transition().duration(aniDur).drawNode();
+	done = true;
+}
+
+
+function collapse(groupSelection){
+	var minLevel = d3.min(groupSelection.data(), function(d){return d.level;});
+	var parentId = groupSelection.data()
+						.filter(function(d){return d.level==minLevel;})[0].parent;
+	var data1 = data.filter(function(d){ return d.id == parentId;});
+
+	groupSelection.transition().duration(aniDur)
+		.attr('cx', data1[0].x)
+		.attr('cy', data1[0].y)
+		.remove();
+		
+	svg.selectAll('x').data(data1).enter().append('circle').drawNode();
+	done = true;
+}
+
+
+
+function getParent(node, level){
+	var parentData = node;
+	for(var i=0; i<level; i++){
+		parentData = data.filter(function(d){return d.id == parentData.parent})[0];
+		if (!parentData){return};
+	}
+		return parentData.id;
+}
+
+
+
+function clickNode(node){
+
+	//clicked node appearance
+
+	d3.selectAll('circle').attr('fill', function(d){
+		if(d==node){
+			return d3.color(color(d.level)).darker();
+		}else{
+			return color(d.level);
+		}
+	});
+	
+	//update selection group
+	if(node.level !=0){
+		groupSelection = d3.selectAll('circle').filter(function(d){
+			var sibling = (node.parent==d.parent);
+			var child = getParent(node,1) == getParent(d,2);
+			return child || sibling;
+		});
+	}
+	selection = d3.select(this);
+	done = false;
+}
+
+
+
+var color = d3.scaleOrdinal().domain(d3.range(20))
+    .range(d3.schemeCategory20);
+	
+var svg = d3.select('svg');
+var dots = svg.selectAll('circle')
+.data(data.filter(function(d){return d.level==1;}))
+.enter()
+.append('circle')
+.drawNode();
+
+</script>
+
+
+</body>
+</html>
