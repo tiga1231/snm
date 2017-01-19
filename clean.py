@@ -16,7 +16,7 @@ def getGeneCount():
             print 'gene count:', count
         with open('ks/geneCount.txt','a') as f:
             f.write(gid+','+count+',\n')
-
+#getGeneCount()
 
 def cleanChr(g1 = '11691', g2 = '25571'):
 ##    remove tmp files

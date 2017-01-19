@@ -1,5 +1,6 @@
 from glob import glob
 
+import json
 import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ from kernel import kernel
 from clean import cleanKS
 np.set_printoptions(precision=4)
 
-interest = ['11691', '25571','7057','28918','4242','28814']
+interest = ['11691', '25571','7057','28918','4242','28814','28041','8143']
 cleanKS(interest)
 
 
@@ -48,7 +49,16 @@ print 'pca ratio', pca.explained_variance_ratio_
 
 xCap = pca.transform(x)
 print xCap
+'''
+x = [{'x':d[0], 'y':d[1],
+    'cat':i,
+    'tag':i} for i,d in enumerate(xCap)]
 
+
+with open('data.js', 'w') as f:
+    f.write('var data = \n')
+    json.dump(x,f, indent = 2)
+'''
 fig = plt.figure()
 ax = fig.add_subplot(121, projection = '3d')
 ax.scatter(xCap[:,0],xCap[:,1],xCap[:,2], color = 'bbbbrb')
@@ -62,14 +72,11 @@ ax.set_xlabel('1st')
 ax.set_ylabel('2nd')
 ax.set_zlabel('3rd')
 
-
 ax = fig.add_subplot(122)
 ax.scatter(xCap[:,0],xCap[:,1], color='bbbbrb')
 ax.axis('square')
 for pt,gID in zip(xCap, genomeIDs):
     ax.text(pt[0],pt[1],genomeNames['tag'][gID])
-
-
-
 ##plt.savefig("test.svg")
 plt.show()
+

@@ -1,0 +1,1127 @@
+
+<HTML>
+<HEAD>
+<meta http-equiv="Pragma" content="no-cache" />
+<TITLE>CoGe: SynMap</TITLE>
+<meta name="description" content="The CoGe Comparative Genomics Platform.  A software suite of interlinked and interconnected web-based tools for easily visualizing, comparing, and understanding the evolution, struture and dynamics of genomes." />
+<meta name="keywords" content="Genetics, Genome, Genomics, Human Genome, Genome Project, Genomics, Homolog, Homologue, Homologous, Homology, Molecular Genetics, Genomes, bioinformatics, mirna, microrna, dna sequencing, computational biology, gene sequencing, shotgun sequencing, Genome Browser, Genetic Information, Biology Genetics, Genome Sequence, Genome Sequencing, Homologous Chromosomes, DNA Genetics, DNA, Genetics Research, Genome Research, Functional Genomics, Genetics Genes, Genetics Map, Genome Analysis, Comparative Genomics, Genome Biology, Genomics Genetics, Homologous Chromosome, Mouse Genome, Human Genome, Yeast Genome, Complete Genomics, Bioinformatics, Bioinformatics genomics, gene genome, homologs, structural genomics, genetic genome, yeast genetics, bioinformatics genome, genes, genome, synteny, syntenic, whole genome sequencing, comparative genome, genetic variations, genome sequences, genome genetics, homologous gene, snp genome" />
+<meta name="google-site-verification" content="Pp2O8PKsZWc6dO67lYe2ONCofCYgMwQcoy6bWhkvbXs" />
+<meta name="google-site-verification" content="voXZn_uzuPQj7YtCxw5ogRAW5PgalKg-8rA_VT7TooA" />
+<meta name="google-site-verification" content="LFIw-oo_UpW85cg_ONvoPuH1IpWYjlfmipsWhOvo1kk" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script type="text/javascript" src="js/vendor/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
+<script type="text/javascript" src="js/vendor/js-cookie/src/js.cookie.js"></script>
+<script type="text/javascript" src="js/coge/logout.js"></script>
+
+<link rel="stylesheet" type="text/css" href="js/jquery-ui-1.12.1.custom/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" href="css/coge.css?version=2016.10.25" />
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="shortcut icon" href="picts/urlicon/favicon.ico">
+</HEAD>
+
+<BODY >
+
+<noscript>
+We have detected that your browser currently has JavaScript disabled. 
+In order for CoGe to function properly JavaScript must be enabled in your browser.
+</noscript>
+
+<div id="logout_dialog" class="hidden dialog_box" title="Log Out of CoGe">
+    <div style="text-align:center;padding:30px;">
+        <div class="info">Would you like to log out of all CyVerse applications?</div>
+        <br><br>
+		<div>
+			<span onClick="location.href='index.pl?logout_coge=1';" class='coge-button'>Log out of CoGe only</span>&nbsp;&nbsp;&nbsp;&nbsp;
+			<span onClick="location.href='index.pl?logout_all=1';" class='coge-button'>Log out of all CyVerse services</span>
+		</div>
+    </div>
+</div>
+
+
+
+<script>
+jQuery(document).ready(function(){
+    pageObj = new Object();
+
+    // Display alert if Internet Explorer
+    //if (jQuery.browser.msie) {browserAlert()}; // mdb removed 10/20/16
+
+    setup_button_states();
+
+    // Show indicator if not on main site
+    if (   document.URL.indexOf('genomevolution.org') == -1 
+    	&& document.URL.indexOf('genomeevolution.org') == -1
+    	&& document.URL.indexOf('coge.iplantcollaborative.org') == -1)
+    {
+        $('#brand').addClass("dev");
+    }
+    
+    $('.dropdown-menu').mouseleave(function(e){
+		hideDropdowns();
+   	});
+    
+	$('.dropdown-label').mouseenter(function(e){
+		var target = $(e.target).closest('.dropdown-label');
+		var id = target.attr('id');
+		if (id)
+			showDropdown('#' + id.slice(0,4) + '_drop');
+	});
+
+	$('#advanced_search').mouseenter(function(e){
+		$('#coge-advanced-search').slideDown('fast');
+		var e = $('#advanced_search').find('.dropdown-arrow');
+		if (e.attr('src') == 'picts/arrow-right-icon.png')
+			e.attr('src', 'picts/arrow-down-icon.png');
+	});
+
+    $('.dropdown-label').mouseleave(function(e){
+       	if (e.relatedTarget && !e.relatedTarget.closest('.dropdown-menu'))
+       	    hideDropdowns();
+    });
+    
+    $('#advanced_search').mouseleave(function(e){
+       	if (e.relatedTarget && !e.relatedTarget.closest('#coge-advanced-search'))
+       	    hideDropdowns();
+    });
+
+    // Add logout detector -- mdb added 9/1/16 COGE-724
+    if (coge.logout) { // coge.logout module will not be present if in embedded mode
+        coge.logout.init({
+            loginCookieName: 'cogec', // should be set by page to enable logout detection
+            loginCallback: login_cas
+        });
+    }
+
+	updateAdvancedSearch();
+});
+
+function browserAlert(){
+    $('#main_alert').html('IE is not supported.  Please use FireFox: http://www.mozilla.com/en-US/firefox/');
+    alert('IE is not supported.  Please use FireFox: http://www.mozilla.com/en-US/firefox/');
+}
+
+//set up the jquery ui button behavior
+function setup_button_states (id) {
+    //button effects on events
+	var item;
+
+	if (id) { item='#'+id; }
+	else { item = '.ui-button'; }
+	$(item+':not(.ui-state-disabled)')
+		.hover( function(){
+			$(this).addClass("ui-state-hover");
+		},
+		function(){
+			$(this).removeClass("ui-state-hover");
+		});
+	$(item+':not(.ui-button-toggle)') //buttons that aren't toggle-able
+		.mousedown(function(){
+			$(this).addClass("ui-state-active");
+		})
+		.mouseup(function(){
+			$(this).removeClass("ui-state-active");
+		});
+	$(item+'.ui-button-toggle') // buttons that are toggle-able
+		.click(function(){
+			if( $(this).hasClass('ui-state-active') ){
+				$(this).removeClass("ui-state-active");
+			}
+			else { $(this).addClass("ui-state-active"); }
+		});
+
+}
+
+//add button behavior to new buttons, takes in array
+function add_button_states (ids) {
+    if (!ids)
+		return;
+    if (!(ids instanceof Array))
+		ids = [ids]; //check if ids is an array, if not, make it one
+    for (var i=0; i<ids.length; i++)
+        setup_button_states(ids[i]);
+}
+
+function search() {
+	var text = $('#header_search_text').val();
+	if ($('#coge-advanced-search').css('display') == 'block') {
+		var terms = [];
+		if (text) {
+			var index = text.indexOf('::');
+			while (index != -1) {
+				var start = index;
+				while (start > 0 && text.charAt(start) != ' ' && text.charAt(start) != '"')
+					--start;
+				var c = start > 0 ? text.charAt(start) : ' ';
+				while (start > 1 && text.charAt(start - 1) == ' ')
+					--start;
+				var end = index + 2;
+				while (end < text.length && text.charAt(end) != c)
+					++end;
+				while (end < text.length && text.charAt(end) == ' ')
+					++end;
+				text = start > 0 && end < text.length ? text.substring(0, start) + ' ' + text.substring(end) : start > 0 ? text.substring(0, start) : text.substring(end);
+				index = text.indexOf('::');
+			}
+			text = text.trim();
+			if (text)
+				terms.push(text);
+		}
+		var type = $('#search_type').val();
+		if (type != 'any')
+			terms.push('type::' + type);
+		var certified = $('#search_certified').val();
+		if (certified != 'any')
+			terms.push('certified::' + (certified == 'yes' ? '1' : '0'));
+
+		var feature_type = $('#search_feature_type').val();
+		if (feature_type)
+			terms.push('feature_type::' + feature_type);
+		var metadata_key = $('#search_metadata_key').val();
+		if (metadata_key)
+			terms.push('metadata_key::' + metadata_key);
+		var metadata_value = $('#search_metadata_value').val();
+		if (metadata_value)
+			if (metadata_value.indexOf(' ') != -1)
+				terms.push('"metadata_value::' + metadata_value + '"');
+			else
+				terms.push('metadata_value::' + metadata_value);
+
+		var tag = $('#search_tag').val();
+		if (tag)
+			if (tag.indexOf(' ') != -1)
+				terms.push('"tag::' + tag + '"');
+			else
+				terms.push('tag::' + tag);
+		if (terms.length)
+			window.location.href = 'SearchResults.pl?s=' + terms.join(' ');
+		else
+			alert('Search not specified');
+	} else if (text)
+		window.location.href = "SearchResults.pl?s=" + text;
+	else
+		alert('Search not specified');
+}
+
+function updateAdvancedSearch() {
+	if (typeof QUERY == 'undefined')
+		return;
+	['certified', 'deleted', 'favorite', 'restricted', 'role'].forEach(function(opt) {
+		if (QUERY[opt])
+			$('#search_' + opt).val(QUERY[opt] == 1 ? 'yes' : 'no');
+	});
+	['feature_type', 'metadata_key', 'metadata_value', 'tag', 'type'].forEach(function(opt) {
+		if (QUERY[opt])
+			$('#search_' + opt).val(QUERY[opt]);
+	});
+}
+
+function searchKey(event) {
+	if (event.which == 13) {
+		event.preventDefault(); //Without this, the page just reloads
+		search();
+	}
+}
+
+function showDropdown(id) {
+	hideDropdowns();
+	$(id).slideDown('fast');
+	var e = $(id + '_label').find('.dropdown-arrow');
+	if (e.attr('src') == 'picts/arrow-right-icon.png')
+    	e.attr('src', 'picts/arrow-down-icon.png');
+}
+
+function hideDropdown(id) {
+	var e = $(id + '_label').find('.dropdown-arrow');
+	if (e.attr('src') == 'picts/arrow-down-icon.png')
+    	e.attr('src', 'picts/arrow-right-icon.png');
+}
+
+function hideDropdowns() {
+	$('.dropdown-menu').hide();
+	hideDropdown('#help_drop');
+	hideDropdown('#tool_drop');
+	hideDropdown('#user_drop');
+	hideDropdown('#advanced_search');
+	$('#coge-advanced-search').hide();
+}
+
+</script>
+
+<div class="info-box">
+Please take a moment to fill out the Future Directions Survey (only 4 questions!) and help guide CoGe's future development: <a href="http://goo.gl/nizYYz" target="_blank">http://goo.gl/nizYYz</a>
+</div>
+
+<div style="min-height:100%">
+<header class="coge-header"><script type="text/javascript">
+//<![CDATA[
+var ajax = [];var cache;function pjx(args,fname,method) { this.target=args[1]; this.args=args[0]; method=(method)?method:'GET'; if(method=='post'){method='POST';} this.method = method; this.r=ghr(); this.url = this.getURL(fname);}function formDump(){ var all = []; var fL = document.forms.length; for(var f = 0;f<fL;f++){ var els = document.forms[f].elements; for(var e in els){ var tmp = (els[e].id != undefined)? els[e].id : els[e].name; if(typeof tmp != 'string'){continue;} if(tmp){ all[all.length]=tmp} } } return all;}function getVal(id) { if (id.constructor == Function ) { return id(); } if (typeof(id)!= 'string') { return id; } var element = document.getElementById(id); if( !element ) { for( var i=0; i<document.forms.length; i++ ){ element = document.forms[i].elements[id]; if( element ) break; } if( element && !element.type ) element = element[0]; } if(!element){ alert('ERROR: Cant find HTML element with id or name: ' + id+'. Check that an element with name or id='+id+' exists'); return 0; } if(element.type == 'select-one') { if(element.selectedIndex == -1) return; var item = element[element.selectedIndex]; return item.value || item.text; } if(element.type == 'select-multiple') { var ans = []; var k =0; for (var i=0;i<element.length;i++) { if (element[i].selected || element[i].checked ) { ans[k++]= element[i].value || element[i].text; } } return ans; } if(element.type == 'radio' || element.type == 'checkbox'){ var ans =[]; var elms = document.getElementsByTagName('input'); var endk = elms.length ; var i =0; for(var k=0;k<endk;k++){ if(elms[k].type== element.type && elms[k].checked && (elms[k].id==id||elms[k].name==id)){ ans[i++]=elms[k].value; } } return ans; } if( element.value == undefined ){ return element.innerHTML; }else{ return element.value; }}function fnsplit(arg) { var url=""; if(arg=='NO_CACHE'){cache = 0; return "";}; if((typeof(arg)).toLowerCase() == 'object'){ for(var k in arg){ url += '&' + k + '=' + arg[k]; } }else if (arg.indexOf('__') != -1) { arga = arg.split(/__/); url += '&' + arga[0] +'='+ escape(arga[1]); } else { var res = getVal(arg) || ''; if(res.constructor != Array){ res = [res] } else if( res.length == 0 ) { res = [ '' ] } for(var i=0;i<res.length;i++) { url += '&args=' + escape(res[i]) + '&' + arg + '=' + escape(res[i]); } } return url;}pjx.prototype = { send2perl : function(){ var r = this.r; var dt = this.target; if (dt==undefined) { return true; } this.pjxInitialized(dt); var url=this.url; var postdata; if(this.method=="POST"){ var idx=url.indexOf('?'); postdata = url.substr(idx+1); url = url.substr(0,idx); } r.open(this.method,url,true); ; if(this.method=="POST"){ r.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); r.send(postdata); } if(this.method=="GET"){ r.send(null); } r.onreadystatechange = handleReturn; }, pjxInitialized : function(){}, pjxCompleted : function(){}, readyState4 : function(){ var rsp = unescape(this.r.responseText); /* the response from perl */ var splitval = '__pjx__'; /* to split text */ /* fix IE problems with undef values in an Array getting squashed*/ rsp = rsp.replace(splitval+splitval+'g',splitval+" "+splitval); var data = rsp.split(splitval); dt = this.target; if (dt.constructor != Array) { dt=[dt]; } if (data.constructor != Array) { data=[data]; } if (typeof(dt[0])!='function') { for ( var i=0; i<dt.length; i++ ) { var div = document.getElementById(dt[i]); if (div.type =='text' || div.type=='textarea' || div.type=='hidden' ) { div.value=data[i]; } else if (div.type =='checkbox') { div.checked=data[i]; } else { div.innerHTML = data[i]; } } } else if (typeof(dt[0])=='function') { dt[0].apply(this,data); } this.pjxCompleted(dt); }, getURL : function(fname) { var args = this.args; var url= 'fname=' + fname; for (var i=0;i<args.length;i++) { url=url + args[i]; } return url; }};handleReturn = function() { for( var k=0; k<ajax.length; k++ ) { if (ajax[k].r==null) { ajax.splice(k--,1); continue; } if ( ajax[k].r.readyState== 4) { ajax[k].readyState4(); ajax.splice(k--,1); continue; } }};var ghr=getghr();function getghr(){ if(typeof XMLHttpRequest != "undefined") { return function(){return new XMLHttpRequest();} } var msv= ["Msxml2.XMLHTTP.7.0", "Msxml2.XMLHTTP.6.0", "Msxml2.XMLHTTP.5.0", "Msxml2.XMLHTTP.4.0", "MSXML2.XMLHTTP.3.0", "MSXML2.XMLHTTP", "Microsoft.XMLHTTP"]; for(var j=0;j<=msv.length;j++){ try { A = new ActiveXObject(msv[j]); if(A){ return function(){return new ActiveXObject(msv[j]);} } } catch(e) { } } return false;}function jsdebug(){ var tmp = document.getElementById('pjxdebugrequest').innerHTML = "<br><pre>"; for( var i=0; i < ajax.length; i++ ) { tmp += '<a href= '+ ajax[i].url +' target=_blank>' + decodeURI(ajax[i].url) + ' <' + '/a><br>'; } document.getElementById('pjxdebugrequest').innerHTML = tmp + "<" + "/pre>";}function get_dsg_gc() { var args = get_dsg_gc.arguments; cache = 1; for( var i=0; i<args[0].length;i++ ) { args[0][i] = fnsplit(args[0][i]); } var l = ajax.length; ajax[l]= new pjx(args,"get_dsg_gc",args[2]); ajax[l].url = 'SynMap.pl?' + ajax[l].url; if ( cache == 0 ) { ajax[l].url = ajax[l].url + '&pjxrand=' + Math.random(); } ajax[l].send2perl(); ;}function gen_dsg_menu() { var args = gen_dsg_menu.arguments; cache = 1; for( var i=0; i<args[0].length;i++ ) { args[0][i] = fnsplit(args[0][i]); } var l = ajax.length; ajax[l]= new pjx(args,"gen_dsg_menu",args[2]); ajax[l].url = 'SynMap.pl?' + ajax[l].url; if ( cache == 0 ) { ajax[l].url = ajax[l].url + '&pjxrand=' + Math.random(); } ajax[l].send2perl(); ;}function generate_assembly() { var args = generate_assembly.arguments; cache = 1; for( var i=0; i<args[0].length;i++ ) { args[0][i] = fnsplit(args[0][i]); } var l = ajax.length; ajax[l]= new pjx(args,"generate_assembly",args[2]); ajax[l].url = 'SynMap.pl?' + ajax[l].url; if ( cache == 0 ) { ajax[l].url = ajax[l].url + '&pjxrand=' + Math.random(); } ajax[l].send2perl(); ;}function initialize_basefile() { var args = initialize_basefile.arguments; cache = 1; for( var i=0; i<args[0].length;i++ ) { args[0][i] = fnsplit(args[0][i]); } var l = ajax.length; ajax[l]= new pjx(args,"initialize_basefile",args[2]); ajax[l].url = 'SynMap.pl?' + ajax[l].url; if ( cache == 0 ) { ajax[l].url = ajax[l].url + '&pjxrand=' + Math.random(); } ajax[l].send2perl(); ;}function read_log() { var args = read_log.arguments; cache = 1; for( var i=0; i<args[0].length;i++ ) { args[0][i] = fnsplit(args[0][i]); } var l = ajax.length; ajax[l]= new pjx(args,"read_log",args[2]); ajax[l].url = 'SynMap.pl?' + ajax[l].url; if ( cache == 0 ) { ajax[l].url = ajax[l].url + '&pjxrand=' + Math.random(); } ajax[l].send2perl(); ;}function get_genome_info() { var args = get_genome_info.arguments; cache = 1; for( var i=0; i<args[0].length;i++ ) { args[0][i] = fnsplit(args[0][i]); } var l = ajax.length; ajax[l]= new pjx(args,"get_genome_info",args[2]); ajax[l].url = 'SynMap.pl?' + ajax[l].url; if ( cache == 0 ) { ajax[l].url = ajax[l].url + '&pjxrand=' + Math.random(); } ajax[l].send2perl(); ;}function get_results() { var args = get_results.arguments; cache = 1; for( var i=0; i<args[0].length;i++ ) { args[0][i] = fnsplit(args[0][i]); } var l = ajax.length; ajax[l]= new pjx(args,"get_results",args[2]); ajax[l].url = 'SynMap.pl?' + ajax[l].url; if ( cache == 0 ) { ajax[l].url = ajax[l].url + '&pjxrand=' + Math.random(); } ajax[l].send2perl(); ;}function get_pair_info() { var args = get_pair_info.arguments; cache = 1; for( var i=0; i<args[0].length;i++ ) { args[0][i] = fnsplit(args[0][i]); } var l = ajax.length; ajax[l]= new pjx(args,"get_pair_info",args[2]); ajax[l].url = 'SynMap.pl?' + ajax[l].url; if ( cache == 0 ) { ajax[l].url = ajax[l].url + '&pjxrand=' + Math.random(); } ajax[l].send2perl(); ;}function check_address_validity() { var args = check_address_validity.arguments; cache = 1; for( var i=0; i<args[0].length;i++ ) { args[0][i] = fnsplit(args[0][i]); } var l = ajax.length; ajax[l]= new pjx(args,"check_address_validity",args[2]); ajax[l].url = 'SynMap.pl?' + ajax[l].url; if ( cache == 0 ) { ajax[l].url = ajax[l].url + '&pjxrand=' + Math.random(); } ajax[l].send2perl(); ;}function get_dotplot() { var args = get_dotplot.arguments; cache = 1; for( var i=0; i<args[0].length;i++ ) { args[0][i] = fnsplit(args[0][i]); } var l = ajax.length; ajax[l]= new pjx(args,"get_dotplot",args[2]); ajax[l].url = 'SynMap.pl?' + ajax[l].url; if ( cache == 0 ) { ajax[l].url = ajax[l].url + '&pjxrand=' + Math.random(); } ajax[l].send2perl(); ;}function get_orgs() { var args = get_orgs.arguments; cache = 1; for( var i=0; i<args[0].length;i++ ) { args[0][i] = fnsplit(args[0][i]); } var l = ajax.length; ajax[l]= new pjx(args,"get_orgs",args[2]); ajax[l].url = 'SynMap.pl?' + ajax[l].url; if ( cache == 0 ) { ajax[l].url = ajax[l].url + '&pjxrand=' + Math.random(); } ajax[l].send2perl(); ;}
+//]]>
+</script>
+
+	<!--Header contains logo and search bar-->
+	<ul id="header_main" class="coge-header-main">
+		<li id="brand"  style="float:left;margin-left:3px;margin-right:1em;line-height:1;">
+			<a href="https://genomevolution.org/coge/">
+				<span class="coge-logo">CoGe</span>
+			</a>
+		</li>
+		
+		<li>
+			<ul class="coge-header-search">
+				<li>
+					<div class="coge-header-searchbar">
+				    	<input id="header_search_text" type="text" class="text" placeholder="Search database" value="" spellcheck="false" onkeypress="searchKey(event)">
+				    </div>
+				</li>
+				<li>
+				    <div id="header_search_button" class="glyphicon glyphicon-search coge-button coge-header-search-button" style="width:1em;" onclick="search();"></div>
+			    </li>
+				<li id="advanced_search" class="coge-header-button">
+					<div id="advanced_search_label">
+						<a>advanced</a>
+						<img class="dropdown-arrow" src="picts/arrow-right-icon.png">
+					</div>
+					<div id="coge-advanced-search" class="text">
+						<table>
+							<tr><td>type:</td><td>
+								<select id="search_type">
+									<option>any</option>
+									<option>experiment</option>
+									<option>feature</option>
+									<option>genome</option>
+									<option>notebook</option>
+									<option>organism</option>
+								</select>
+							</td></tr>
+							<tr><td>certified:</td><td>
+								<select id="search_certified">
+									<option>any</option>
+									<option>yes</option>
+									<option>no</option>
+								</select>
+							</td></tr>
+
+							<tr><td>feature type:</td><td>
+								<input id="search_feature_type" />
+							</td></tr>
+							<tr><td>metadata key:</td><td>
+								<input id="search_metadata_key" />
+							</td></tr>
+							<tr><td>metadata value:</td><td>
+								<input id="search_metadata_value" />
+							</td></tr>
+
+							<tr><td>tag:</td><td>
+								<input id="search_tag" />
+							</td></tr>
+						</table>
+						<div>
+							<button onclick="search();" style="float:right;">search</button>
+						</div>
+					</div>
+				</li>
+			</ul>
+	    </li>
+	</ul>
+		
+	<!--Buttons and links-->
+	<ul id="header_menu" class="coge-header-menu">
+		<li class="coge-header-button noselect"><div><a href="User.pl">My Data</a></div></li>
+		<li id="tool" class="dropdown coge-header-button noselect">
+			<div id="tool_drop_label" class="dropdown-label">Tools <img class="dropdown-arrow" src="picts/arrow-right-icon.png" class="link"></div>
+			<ul id="tool_drop" class="dropdown-menu hidden">
+				<li class="dropdown-item"><a class="dropdown-link" href="OrganismView.pl">OrganismView</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="CoGeBlast.pl">CoGeBlast</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="FeatView.pl">FeatView</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="SynFind.pl">SynFind</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="SynMap.pl">SynMap</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="SynMap3D.pl">SynMap3D</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="GEvo.pl">GEvo</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="LoadGenome.pl">Load Genome</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="LoadExperiment.pl">Load Experiment</a></li>
+			</ul>
+		</li>
+		<li id="help" class="dropdown coge-header-button noselect">
+			<div id="help_drop_label" class="dropdown-label">Help <img class="dropdown-arrow" src="picts/arrow-right-icon.png" class="link"></div>
+			<ul id="help_drop" class="dropdown-menu hidden">
+				<li class="dropdown-item"><a class="dropdown-link" href="https://genomevolution.org/wiki/index.php" target="_blank">CoGePedia</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="https://genomevolution.org/wiki/index.php/SynMap" target="_blank">Page Docs</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="http://ask.iplantcollaborative.org/questions/scope%3Aall/sort%3Aactivity-desc/tags%3ACoGe/" target="_blank">Forums</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="https://genomevolution.org/wiki/index.php/FAQs" target="_blank">FAQ</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="https://genomevolution.org/wiki/index.php/Tutorials" target="_blank">Tutorials</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="https://genomevolution.org/wiki/index.php/Contact_Page#How_to_cite_CoGe.3F" target="_blank">Cite CoGe</a></li>
+				<li class="dropdown-item"><a class="dropdown-link" href="https://genomevolution.org/wiki/index.php/System_Support" target="_blank">System Support</a></li>
+				<!--<li class="dropdown-item"><a class="dropdown-link" href="https://genomevolution.org/wiki/index.php/CoGepedia:Current_events" target="_blank">Latest News</a><li>-->
+			</ul>
+		</li>
+
+		<li id="header_login_button" class="coge-header-button" onclick="login_cas();return true;">
+			<div>Log in</div>
+		</li>
+
+	</ul>
+</header>
+
+<!--<div class="tagline">SynMap: Whole Genome Synteny Analysis</div>-->
+
+
+
+	
+	<div class="box" style="overflow:hidden;">
+		
+<style>
+    div.deleted { display: none; }
+
+    .leftPlot {
+        float: left;
+    }
+
+    .rightPlot {
+        float: right;
+    }
+
+    .plot {
+        width: 48.5%;
+        text-align: center;
+    }
+    .box {
+        float: none !important;
+    }
+</style>
+
+
+    <div id="results">
+    </div>
+
+
+<aside class="info">
+    <p><a class="bold" href="http://genomevolution.org/wiki/index.php/SynMap2" target="_blank">SynMap</a> generates a syntenic dotplot between
+    two organisms and identifies syntenic regions.
+	    <span class="link" onClick="$(this).remove(); $('#getting_started').fadeIn();">More...</span>
+    </p>
+
+    <div id="getting_started" class="hidden" style="max-width:90%;">
+	    <ol>
+	    	<li>Finds putative genes or regions of homology between two genomes
+	    	<li>Identies collinear sets of genes or regions of sequence similarity to infer synteny
+	    	<li>Generates a dotplot of the results and coloring syntenic pairs.
+	    </ol>
+
+	    	If you choose, synonymous and non-synonymous site mutation data can be calculated for protein coding genes that are identified as syntenic. These genes will then be colored based on those values in the dotplot for rapid identification of different age-classes of syntenic regions.
+
+        <p>
+            <a href="http://genomevolution.org/r/btab" target="_blank">
+                Click here for an example analysis between
+                <em>Arabidopsis thaliana</em> and <em>Arabidopsis lyrata</em>.
+            </a>
+        </p>
+        <p>
+            <a href="http://genomevolution.org/wiki/index.php/Syntenic_comparison_of_Arabidopsis_thaliana_and_Arabidopsis_lyrata" target="_blank">
+                Click here for an explanation of the results.
+            </a>
+        </p>
+    </div>
+</aside>
+
+<section id="tabs" class="invisible" style="margin-top: 0.5em; min-width: 645px;">
+    <ul>
+        <li class="small"><a href="#tab-1">Select Organisms</a></li>
+        <li class="small"><a href="#tab-2">Analysis Options</a></li>
+        <li class="small"><a href="#tab-3">Display Options</a></li>
+        <div class="r small link" style="font-weight: normal;" onclick="window.open('https://genomevolution.org/wiki/index.php/SynMap2', '_blank')">Need help?</div>
+    </ul>
+
+    <div id="tab-1">
+        <div class="alert"></div>
+        <ul>
+            <li style="display:inline-block; padding: 5px 0 5px 0; vertical-align:top;">
+                    
+    <section class="ui-widget-content ui-corner-all coge-bg" style="float: left; padding: 0.3em; height: auto; width:625px;">
+            <div class="searchbar">
+                <div class="search-header">
+                    Organism 1:
+                </div>
+
+                <div class="search-button">
+                    <span class="coge-button coge-button-sm" onClick="timing('org_name1');"><span class="glyphicon glyphicon-search"></span></span>
+                </div>
+
+                <div class="search-field">
+                    <input type="search"
+                        name = "org_name1"
+                        id="org_name1"
+                        onKeyUp="timing('org_name1');"
+                        placeholder="Search" />
+                </div>
+            </div>
+
+            <div id="org_list1" class="coge-padded-top">
+                <span class="small info">Organisms: (1)</span>
+<BR>
+<SELECT id="org_id1" SIZE="5" MULTIPLE onChange="get_genome_info_chain(1)" class="coge-fill-width">
+<OPTION value="33007" selected>Felis catus (domestic cat) (id33007)</OPTION>
+</SELECT>
+
+            </div>
+
+            <table>
+                <tr>
+                    <td>
+                        <span id="dsg_menu1">
+                                <div class="coge-padded-top inline bottom"><span class="small text">Genomes: </span><select id="dsgid1" style="max-width:400px;height:2em;" onChange="get_genome_info(['args__dsgid','dsgid1','args__org_num','args__1'],[handle_dsg_info])"><OPTION VALUE=28041  selected>unmasked (v6.2,id28041)</option><OPTION VALUE=11267  >unmasked (v1,id11267)</option><OPTION VALUE=15453  >unmasked (v1,id15453)</option><OPTION VALUE=22608  >unmasked (v1,id22608)</option></select></div>
+                        </span>
+                    <!--</td>
+                    <td>-->
+                        <span id="feattype_menu1" class="left">
+                            
+                                <select id="feat_type1" name="feat_type1" style="height:2em;">#<OPTION VALUE=1 selected>CDS</option><OPTION VALUE=2  >genomic</option></select>
+                            
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        <div id="genome_message1">
+                            
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <div style="vertical-align:top;" id="dsg_info1">
+                <table class="xsmall" style="margin-left:1em; border-top:1px solid lightgray;"><tr><td>Description:</td><td class="link" onclick=window.open('GenomeInfo.pl?gid=28041')>Felis catus (domestic cat) (v6.2, id28041): unmasked</td></tr><tr><td>Taxonomy:</td><td><span class="link" onclick="search_bar('Eukaryota', '#org_name1'); timing('org_name1')">Eukaryota</span>; <span class="link" onclick="search_bar('Metazoa', '#org_name1'); timing('org_name1')">Metazoa</span>; <span class="link" onclick="search_bar('Chordata', '#org_name1'); timing('org_name1')">Chordata</span>; <span class="link" onclick="search_bar('Craniata', '#org_name1'); timing('org_name1')">Craniata</span>; <span class="link" onclick="search_bar('Vertebrata', '#org_name1'); timing('org_name1')">Vertebrata</span>; <span class="link" onclick="search_bar('Euteleostomi', '#org_name1'); timing('org_name1')">Euteleostomi</span>; <span class="link" onclick="search_bar('Mammalia', '#org_name1'); timing('org_name1')">Mammalia</span>; <span class="link" onclick="search_bar('Eutheria', '#org_name1'); timing('org_name1')">Eutheria</span>; <span class="link" onclick="search_bar('Laurasiatheria', '#org_name1'); timing('org_name1')">Laurasiatheria</span>; <span class="link" onclick="search_bar('Carnivora', '#org_name1'); timing('org_name1')">Carnivora</span>; <span class="link" onclick="search_bar('Feliformia', '#org_name1'); timing('org_name1')">Feliformia</span>; <span class="link" onclick="search_bar('Felidae', '#org_name1'); timing('org_name1')">Felidae</span>; <span class="link" onclick="search_bar('Felinae', '#org_name1'); timing('org_name1')">Felinae</span>; <span class="link" onclick="search_bar('Felis', '#org_name1'); timing('org_name1')">Felis</span></td></tr><tr><td>Source:  <td><a href=http://ensembl.org target=_new>Ensembl</a><tr><td>Dataset: <td>Felis_catus.Felis_catus_6.2.82.gff3<tr><td>Chromosomes: <td>1<tr><td>DNA content: <td id='gc_content1' class='link' onclick="get_gc(28041, 'gc_content1')">Click to retrieve<tr><td>Total length: <td>239,302,903</table>
+                <div id="org_length1" class="hidden">239302903</div>
+                <div id="seq_type1" class="hidden">1</div>
+            </div>
+    </section>
+
+
+            </li>
+            <li style="display:inline-block; padding: 5px 0 5px 0; vertical-align:top;">
+                    
+    <section class="ui-widget-content ui-corner-all coge-bg" style="float: left; padding: 0.3em; height: auto; width:625px;">
+            <div class="searchbar">
+                <div class="search-header">
+                    Organism 2:
+                </div>
+
+                <div class="search-button">
+                    <span class="coge-button coge-button-sm" onClick="timing('org_name2');"><span class="glyphicon glyphicon-search"></span></span>
+                </div>
+
+                <div class="search-field">
+                    <input type="search"
+                        name = "org_name2"
+                        id="org_name2"
+                        onKeyUp="timing('org_name2');"
+                        placeholder="Search" />
+                </div>
+            </div>
+
+            <div id="org_list2" class="coge-padded-top">
+                <span class="small info">Organisms: (1)</span>
+<BR>
+<SELECT id="org_id2" SIZE="5" MULTIPLE onChange="get_genome_info_chain(2)" class="coge-fill-width">
+<OPTION value="26868" selected>Pan troglodytes (chimpanzee) (id26868)</OPTION>
+</SELECT>
+
+            </div>
+
+            <table>
+                <tr>
+                    <td>
+                        <span id="dsg_menu2">
+                                <div class="coge-padded-top inline bottom"><span class="small text">Genomes: </span><select id="dsgid2" style="max-width:400px;height:2em;" onChange="get_genome_info(['args__dsgid','dsgid2','args__org_num','args__2'],[handle_dsg_info])"><OPTION VALUE=28817  >&#x2705; unmasked (vPan_troglodytes-2.1.4,id28817)</option><OPTION VALUE=11691  selected>unmasked (v3,id11691)</option><OPTION VALUE=7071  >unmasked (v2,id7071)</option></select></div>
+                        </span>
+                    <!--</td>
+                    <td>-->
+                        <span id="feattype_menu2" class="left">
+                            
+                                <select id="feat_type2" name="feat_type2" style="height:2em;">#<OPTION VALUE=1 selected>CDS</option><OPTION VALUE=2  >genomic</option></select>
+                            
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        <div id="genome_message2">
+                            
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <div style="vertical-align:top;" id="dsg_info2">
+                <table class="xsmall" style="margin-left:1em; border-top:1px solid lightgray;"><tr><td>Description:</td><td class="link" onclick=window.open('GenomeInfo.pl?gid=11691')>Pan troglodytes (chimpanzee) (v3, id11691): unmasked</td></tr><tr><td>Taxonomy:</td><td><span class="link" onclick="search_bar('Eukaryota', '#org_name2'); timing('org_name2')">Eukaryota</span>; <span class="link" onclick="search_bar('Metazoa', '#org_name2'); timing('org_name2')">Metazoa</span>; <span class="link" onclick="search_bar('Chordata', '#org_name2'); timing('org_name2')">Chordata</span>; <span class="link" onclick="search_bar('Craniata', '#org_name2'); timing('org_name2')">Craniata</span>; <span class="link" onclick="search_bar('Vertebrata', '#org_name2'); timing('org_name2')">Vertebrata</span>; <span class="link" onclick="search_bar('Euteleostomi', '#org_name2'); timing('org_name2')">Euteleostomi</span>; <span class="link" onclick="search_bar('Mammalia', '#org_name2'); timing('org_name2')">Mammalia</span>; <span class="link" onclick="search_bar('Eutheria', '#org_name2'); timing('org_name2')">Eutheria</span>; <span class="link" onclick="search_bar('Euarchontoglires', '#org_name2'); timing('org_name2')">Euarchontoglires</span>; <span class="link" onclick="search_bar('Primates', '#org_name2'); timing('org_name2')">Primates</span>; <span class="link" onclick="search_bar('Haplorrhini', '#org_name2'); timing('org_name2')">Haplorrhini</span>; <span class="link" onclick="search_bar('Catarrhini', '#org_name2'); timing('org_name2')">Catarrhini</span>; <span class="link" onclick="search_bar('Hominidae', '#org_name2'); timing('org_name2')">Hominidae</span>; <span class="link" onclick="search_bar('Pan', '#org_name2'); timing('org_name2')">Pan</span></td></tr><tr><td>Source:  <td><a href=http://www.ncbi.nih.gov target=_new>NCBI</a><tr><td>Dataset: <td>NC_006474.gbk: LOCUS: NC_006474, ACCESSION: NC_006474, VERSION: 3<tr><td>Chromosomes: <td>1<tr><td>DNA content: <td id='gc_content2' class='link' onclick="get_gc(11691, 'gc_content2')">Click to retrieve<tr><td>Total length: <td>133,121,534</table>
+                <div id="org_length2" class="hidden">133121534</div>
+                <div id="seq_type2" class="hidden">1</div>
+            </div>
+    </section>
+
+
+            </li>
+        </ul>
+    </div>
+    <!--close tab-1 -->
+
+    <div id="tab-2">
+    <form id="parameters">
+    <fieldset class="ui-widget-content ui-corner-all coge-section">
+        <legend style="color:#009900">Blast Algorithm</legend>
+        <select id="blast" name="blast" onchange="update_blast_option($(this).val())">
+            <option value="6" >Last (fastest)
+            <option value="4" >(B)lastZ (fast)
+            <option value="0" >MegaBlast
+            <option value="1" selected>Discontinuous MegaBlast
+            <option value="2" >BlastN (slow)
+            <option value="3" >TBlastX (very slow)
+            <option value="5" >BlastP (slow)
+        </select>
+        <br>
+        <label id="blast_option" style="display:none;">
+            <span></span>
+            <input />
+            <span></span>
+        </label>
+    </fieldset>
+
+    <fieldset class="ui-widget-content ui-corner-all coge-section">
+        <legend style="color:#009900;">DAGChainer Options</legend>
+        <ul style="list-style-type: none; padding: 0; margin: 0;">
+            <li>
+                <label>Relative Gene Order</label>
+                <input id="dagchainer_type" name="dagchainer_type" checked="true" type="radio" value="geneorder" checked  onClick="display_dagchainer_settings()">
+                <label>Nucleotide Distance</label>
+                <input id="dagchainer_type" name="dagchainer_type" type="radio" value="distance"
+                onClick="display_dagchainer_settings();"  >
+                <span class="small">We recommend using "Relative Gene Order"</span>
+            </li>
+
+            <li>
+                <span id="dagchainer_distance">Default distance settings for:
+                    <select id="dagchainer_default" name="dagchainer_defaults" onChange="set_dagchainer_defaults();">
+                        <option value="1">Plant
+                        <option value="2">Microbe
+                    </select>
+                </span>
+            </li>
+            <li>
+                <label>Maximum distance between two matches (-D):</label>
+                <input type="number" size="8" name="D" id="D" value="">
+                <span class=distance_type></span>
+            </li>
+            <li>
+                <label>Minimum number of aligned pairs (-A):</label>
+                <input type="number" size="8" name="A" id="A" value=""> genes
+            </li>
+        </ul>
+    </fieldset>
+
+    <fieldset class="ui-widget-content ui-corner-all coge-section">
+        <legend style="color:#009900">Merge Syntenic Blocks</legend>
+            <label>Algorithm:</label>
+            <select id="merge_algo" name="merge_algo" onchange="merge_select_check()">
+                <option VALUE="0"> --None--
+                <option VALUE="1" >Quota Align Merge
+                <option VALUE="2" >Interative DAGChainer
+            </select>
+            <small>
+                These settings will merge neighboring syntenic blocks.  We recommend "Quota Align".
+            </small>
+
+        <ul style="list-style-type:none;padding:0; margin: 0" id="merge_algo_options">
+            <li id="max_dist_merge">
+                <label>Average distance expected between syntenic blocks (-gm):</td>
+                <input type="text" size="8" name="gm" id="gm" value="">
+                <span class="distance_type"></span>
+            </li>
+            <li id="merge_algo_options">
+                <label>Maximum distance between two blocks (-Dm):</label>
+                <input type="text" size="8" name="Dm" id="Dm" value="">
+                <span class="distance_type"></span>
+            </li>
+        </ul>
+    </fieldset>
+
+    <fieldset class="ui-widget-content ui-corner-all coge-section">
+        <legend style="color:#009900">Syntenic Depth</legend>
+        <ul style="list-style-type: none; padding: 0; margin: 0;">
+            <li>
+                <label>Algorithm:</label>
+                <select id="depth_algo" name="depth_algo" onchange="depth_algo_check()">
+                    <option value="0"> --None--
+                    <option value="1" >Quota Align
+                </select>
+            </li>
+            <li id="depth_options" style="display:none;">
+                <label>Ratio of coverage depth:</label>
+
+                <span style="color:#009900" name="depth_org_1" id="depth_org_1"></span>
+                <input type="text" size="2" name="depth_org_1_ratio" id="depth_org_1_ratio" value="1">
+                -to-
+                <input type="text" size="2" name="depth_org_2_ratio" id="depth_org_2_ratio" value="1">
+                <span style="color:#009900" name="depth_org_2" id=depth_org_2></span><br>
+
+                <label>Overlap distance:</label>
+                <input type="text" size="8" name="depth_overlap" id="depth_overlap" value="40">
+            </li>
+        </ul>
+    </fieldset>
+
+    <fieldset class="ui-widget-content ui-corner-all coge-section">
+        <legend style="color:#009900">Fractionation Bias</legend>
+        <ul style="list-style-type: none; padding: 0; margin: 0;">
+            <li>
+                <label>Run:</label>
+                <input type="checkbox" id="frac_bias" name="frac_bias"  />
+            </li>
+            <li>
+                <label>Window size (genes):</label>
+                <input type="text" id="fb_window_size" name="fb_window_size" value="100" />
+            </li>
+            <li>
+                <label>Restrict maximum number of chromosomes in analysis:</label>
+            </li>
+            <li>
+                <label style="padding-left: 20px">Max query chromosomes:</label>
+                <input type="text" id="fb_numquerychr" name="fb_numquerychr" value="25" />
+            </li>
+            <li>
+                <label style="padding-left: 20px">Max target chromosomes:</label>
+                <input type="text" id="fb_numtargetchr" name="fb_numtargetchr" value="25" />
+            </li>
+            <li>
+                <label>Skip Random/Unknown Chromosomes:</label>
+                <input type="checkbox" id="fb_remove_random_unknown" name="fb_remove_random_unknown" checked />
+            </li>
+            Fractionation bias calculation:
+            <li>
+            	&nbsp<input type="radio" id="fb_all_genes" name="fb_genes" value="all_genes" checked /> Use all genes in target genome<br />
+            	&nbsp<input type="radio" id="fb_target_genes" name="fb_genes" value="target_genes"  /> Use only syntenic genes in target genome (inceases fractionation signal)
+            </li>
+        </ul>
+    </fieldset>
+
+    <fieldset class="ui-widget-content ui-corner-all coge-section">
+        <legend style="color:#009900;">CodeML</legend>
+        <ul style="padding: 0; margin: 0;">
+            <li>
+                <label>Calculate syntenic CDS pairs and color dots:</label>
+                <select name="ks_type" id="ks_type">
+                    <option value="0" >--None--</option>
+                    <option value="ks" selected >Synonymous (Ks)</option>
+                    <option value="kn"  >Non-synonymous (Kn)</option>
+                    <option value="kn_ks" >Kn/Ks</option>
+                </select> substitution rates <small style="color:red">(SLOW)</small>
+            </li>
+            <li>
+                <label>Color scheme:</label>
+                <select name="color_scheme" id="color_scheme">
+                    <option value ="0"  >Rainbow 1</option>
+                    <option value ="1" selected >Rainbow 2</option>
+                    <option value ="5"  >2.1xRainbow</option>
+                    <option value ="7"  >2.2xRainbow</option>
+                    <option value ="6"  >3.1xRainbow</option>
+                    <option value ="8"  >3.2xRainbow</option>
+                    <option value ="2"  >RYB</option>
+                    <option value ="3"  >RYBG</option>
+                    <option value ="4"  >Black-Red</option>
+                    <option value ="9"  >3xRed-Blue</option>
+                    <option value ="10"  >3xBlue-Orange</option>
+                </select>
+            </li>
+            <li>
+                <label>Min Val:</label>
+                <input type="text" size="4" name="codeml_min" id="codeml_min" value="">
+
+                <label>Max Val:</label>
+                <input type="text" size="4" name="codeml_max" id="codeml_max" value="">
+
+                <label>Log10 Transform:</label>
+                <input type="checkbox" name="logks" value="true" id="logks" checked >
+            </li>
+            <li>
+                <small style="color:red">&nbsp;&nbsp;&nbsp;&nbsp; Only applicable to protein coding sequences (CDS vs. CDS)</small>
+            </li>
+        </ul>
+    </fieldset>
+
+    <fieldset class="ui-widget-content ui-corner-all coge-section">
+        <legend style="color:#009900">Advanced Options (
+        <a href="../wiki/index.php/SynMap#Advanced_Options">see page docs</a>)</legend>
+        <ul style="list-style-type: none; padding: 0; margin: 0;">
+            <li>
+                <label>Tandem duplication distance</label>
+                <input type="number" size="2" id="tdd" name="tdd" value="10">
+            </li>
+            <li>
+                <label>C-score (filters low quality hits: value [0-1])</label>
+                <input type="range" size="2" id="csco" name="csco" value="0"
+                    min="0" max="1" step="0.01" onchange="cs_display.value=value">
+                <output id="cs_display" for="csco">0</output>
+            </li>
+        </ul>
+    </fieldset>
+        <input type="hidden" name="fname" value="go">
+    </form>
+</div> <!-- close tab-2 -->
+
+    <div id="tab-3">
+        <form id="display-options">
+
+        <!-- AKB Added/Modified 2016-10-18 -->
+        <fieldset class="ui-widget-content ui-corner-all coge-section">
+            <legend style="color:#009900">Visualizer Select</legend>
+            <ul>
+                <li>
+                    <input id="visualizer_select" name="visualizer_select" checked="true" type="radio" value="synmap2" onClick="display_legacy_settings();" checked >
+                    <label>SynMap2</label>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input id="visualizer_select" name="visualizer_select" type="radio" value="legacy" onClick="display_legacy_settings();"  >
+                    <label>Legacy Version</label>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="small note">Use legacy version if your previous analysis froze.</span>
+                </li>
+            </ul>
+        </fieldset>
+
+        <fieldset class="ui-widget-content ui-corner-all coge-section" id="legacy_opts">
+            <legend style="color:#009900">Legacy options</legend>
+            <ul>
+                <li>
+                    <label>Regenerate dotplot images?</label>
+                    <input type="checkbox" name="regen_images" value="true" id="regen_images">
+                </li>
+                <li>
+                    <label>Show non-syntenic matches (grey dots)?</label>
+                    <input type="checkbox" name="show_non_syn_dots" value="true" id="show_non_syn_dots"  >
+                </li>
+                <li>
+                    <label>Draw boxes around syntenic regions?</label>
+                    <input type="checkbox" name="box_diags" id="box_diags" value="true"  >
+                </li>
+                <li>
+                    <label>Label Chromosomes?</label>
+                    <input type="checkbox" name="clabel" id="clabel" value="true" checked >
+                </li>
+                <li>
+                    <label>Skip Random/Unknown Chromosomes?</label>
+                    <input type="checkbox" name="skiprand" id="skiprand" value="true" checked >
+                </li>
+                <li>
+                    <label>Sort Chromosomes by:</label>
+                    <select name="chr_sort_order" id="chr_sort_order">
+                        <option value="N"  > Name </option>
+                        <option value="S" selected > Size </option>
+                    </select>
+                </li>
+                <li>
+                    <label>Flip axes?</label>
+                    <input type="checkbox" name="flip" id="flip" value="true"  >
+                </li>
+                <li>
+                <label>Color diagonals by:</label>
+                    <select name="color_type" id="color_type">
+                        <option value="0" selected > Single color </option>
+                        <option value="inv"  > Inversions </option>
+                        <option value="diag"  > Syntenic Block </option>
+                    </select>
+                    <span class="small" style="color:red">Synonymous rates will supercede this option.</span>
+                </li>
+                <li>
+                    <label>Dotplot axis metric:</label>
+                    <select name="axis_metric" id="axis_metric">
+                        <option value="nt" selected>Nucleotides</option>
+                        <option value="gene" >Genes</option>
+                    </select>
+                </li>
+                <li>
+                <label>Dotplot axes relationship:</label>
+                    <select name="axis_relationship" id="axis_relationship">
+                        <option value="s" >Square</option>
+                        <option value="r" selected>Relative/Dynamic</option>
+                    </select>
+                </li>
+                <li>
+                    <label>Master image width (0 == dynamic)</label>
+                    <input type="text" name="master_width" id="master_width"
+                        size="6" value="0">
+                </li>
+                <li>
+                    <label>Minimum chromosome size:</label>
+                    <input type="text" name="min_chr_size" id="min_chr_size"
+                        size="6" value="">
+                </li>
+                <li>
+                    <label>
+                        <a href="http://genomevolution.org/wiki/index.php/Syntenic_path_assembly" target="_CoGepedia">Syntenic Path Assembly (SPA)</a>?
+                    </label>
+                    <input type="checkbox" name="assemble" id="assemble"  value="true" onclick="$('#assemble_info').toggle();" >
+                    <div id="assemble_info" style="display: none;">
+                    <span class="small" style="color: red;">Options:
+                        <label>Reference genome (to which the other genome is assembled) has</label>
+                        <select id="spa_ref_genome" name="spa_ref_genome">
+                            <option value="1"  >fewer</option>
+                            <option value="-1"  >more</option>
+                        </select>
+                        pieces (contigs, scaffolds, etc)<br>
+                    </span>
+                    <span class ="small">(Note: SPA is not compatible with syntenic depth or merging syntenic blocks.  If SPA is selected with those options, your dotplot image will fail to be drawn.)</span>
+                    </div>
+                <li>
+                    <label>Hide contigs without synteny?</label>
+                    <input type="checkbox" name="show_non_syn" id="show_non_syn" value="true" ><span><br>
+                </li>
+                <li>
+                    <label>Your E-mail Address: </label>
+                    <input type="email" name="email" id="email" onBlur="address_validity_check()"
+                        value=""></input>
+                    <span id="email_error" class="small" style="display: none; color: red;">You have supplied an invalid e-mail address.</span>
+                <li>
+                    <label>Job Title: </label>
+                    <input type="text" name="jobtitle" id="jobtitle" />
+                    <span class="coge-button coge-button-sm" onClick="fill_jobtitle()">Use Org Names</span>
+                </li>
+            </ul>
+        </fieldset>
+        </form>
+    </div> <!-- close tab-3 -->
+</section> <!--close tabs section-->
+<div style="padding: 15px 0 5px 0;">
+    <span class="coge-button coge-button-danger coge-button-lg" id="synmap_go" >Generate SynMap</span>
+</div>
+
+
+<!-- partials -->
+<div id="dialog" class="dialog_box" title="Preparing download" style="display:none;">
+    <div class="coge-dialog-content ui-widget-content ui-corner-all info">
+        <h4 class="center">Generating Pseudo Assembly</h4>
+        <p class="small">(This may take several hours)</p>
+    </div>
+    <div class="coge-dialog-status">Please wait ... <img src="picts/ajax-loader.gif" /></div>
+</div>
+
+<div id="synmap_dialog" class="dialog_box" title="Running SynMap ..." style="display:none;">
+    <div id="text" class="ui-widget-content ui-corner-all inline" style="overflow-y:auto;width:450px;height:200px;color:dimgray;padding: 5px;">
+    </div>
+
+    <ul id="dialog_error" class="horizontal padded hidden">
+        <li id="error_msg">An error occurred <img src="picts/thumbs_down.png"></li>
+        <li id="dialog_log" class="small"></li>
+        <li id="cancel_button" class="coge-button coge-button-danger r">
+            <span onClick="close_dialog($('#synmap_dialog')); load_results();" >
+                Close
+            </span>
+        </li>
+    </ul>
+
+    <ul id="dialog_success" class="horizontal padded hidden">
+        <li id="finished_msg">
+            <span>Finished!</span>
+            <img src="picts/thumbs_up.png">
+        </li>
+        <li id="ok_button" class="coge-button r">
+            <span onClick="close_dialog($('#synmap_dialog')); load_results();" >
+                OK
+            </span>
+        </li>
+    </ul>
+
+    <ul id="progress" class="padded">
+        <li class="bottom">
+            <span id="loading_msg">Please wait ...</span>
+            <img src="picts/ajax-loader.gif"/>
+        </li>
+    </ul>
+    <div id="synmap_link" class="small" style="color:dimgray; padding-left: 5px;"></div>
+</div>
+
+<!--<div class="dialog_box splash_dialog hidden" title="">
+	<div>
+		<br>
+		Welcome to !
+		<br><br>
+		
+		<br><br>
+		See <a href="" target="_blank">this article</a> for detailed instructions.
+		Or at any time you can click the <a href="" target="_blank">"Need help?"</a> link in the upper right of this page.
+	</div>
+    <br><br>
+    <span onClick="if ($(this).siblings('input:checkbox').prop('checked')) Cookies.set('','true',{expires:10000});$(this).parent('div').dialog('close');" class="r coge-button">OK</span>
+    <input type="checkbox" /> <span class="small">Don't show this message again</span>
+</div>
+    
+<script>
+$(function(){
+	//Show splash popup
+	if (!Cookies.get('') && !'') {
+		$('.splash_dialog').dialog({
+			modal: true,
+			width: '30em',
+			create: function (event) { $(event.target).parent().css('position', 'fixed');}, // mdb added 8/26/15 -- fix position in iframe
+		}).dialog('open');
+	}
+});
+</script>-->
+
+<div id="overlay">
+    <div id="floatingCirclesG">
+        <div class="f_circleG" id="frotateG_01">
+        </div>
+        <div class="f_circleG" id="frotateG_02">
+        </div>
+        <div class="f_circleG" id="frotateG_03">
+        </div>
+        <div class="f_circleG" id="frotateG_04">
+        </div>
+        <div class="f_circleG" id="frotateG_05">
+        </div>
+        <div class="f_circleG" id="frotateG_06">
+        </div>
+        <div class="f_circleG" id="frotateG_07">
+        </div>
+        <div class="f_circleG" id="frotateG_08">
+        </div>
+    </div>
+</div>
+
+<script id="progress-template" type="text/template">
+    <div class="log"></div>
+    <div style="padding-top:0.75em;min-height:2em;">
+        <span class="status hidden"></span>
+        <span class="small progress-link r hidden"></span>
+        <span class="buttons"></span>
+        <span class="ok coge-button hidden r">OK</span>
+    	<span class="cancel coge-button coge-button-danger hidden r">Cancel</span>
+        <span class="logfile text hidden">... See <a href="" target="_blank">Log File</a> for details</span>
+    </div>
+</script>
+
+<!-- Load scripts last for speed -->
+<script src="js/pages/synmap.js"></script>
+<script src="js/coge/services.js"></script>
+<script src="js/coge/progress.js"></script>
+<script src="js/coge/utils.js"></script>
+<script src="js/coge/colors.js"</script>
+<script src="js/vendor/d3/d3.min.js"></script>
+<script src="js/xhairs.js"></script>
+<script>
+const API_BASE_URL  = 'https://genomevolution.org/coge/api/v1/';
+const PAGE_NAME     = 'SynMap.pl';
+const SUPPORT_EMAIL = 'coge.genome@gmail.com';
+const USER_NAME     = 'public';
+const BLAST_OPTION  = '';
+
+$(function() {
+    display_dagchainer_settings([20,5, '40', ],' genes');
+    display_legacy_settings();  //AKB Added 2016-10-18
+
+    // Initialize CoGe web services
+    coge.services.init({
+        baseUrl: API_BASE_URL,
+        userName: USER_NAME,
+        //debug: true
+    });
+    
+    // Intialize progress window
+    coge.progress.init({
+        title: "Running SynMap",
+        baseUrl: API_BASE_URL,
+        userName: USER_NAME,
+        supportEmail: SUPPORT_EMAIL,
+        onError: coge.synmap.onError
+    });
+
+    //FIXME: Remove global state
+    pageObj = {
+        "id1": "0",
+        "id2": "0",
+        "tempdir": "/opt/apache2/coge/web/tmp/SynMap",
+        "page": "SynMap.pl",
+        "rootElement": $(".box"),
+        "autostart": Boolean(parseInt("1", 10))
+    };
+
+    coge.synmap.setup(pageObj);
+    update_blast_option($('#blast').val());
+});
+</script>
+
+	</div>
+
+
+
+
+</div>
+</div> <!-- end body wrapper -->
+<div class="footer">
+    <div style="float:right;" >
+        <a target="_blank" href="http://www.moore.org" style="float:left;padding-top:7px;">
+            <img style="padding-right:15px;" src="./picts/Moore_Foundation.png"/>
+        </a>
+        <a target="_blank" href="http://www.usda.gov" style="float:left;padding-top:7px;">
+        	<img style="padding-right:6px;" src="./picts/usda_logo.png"/>
+        </a>
+        <a target="_blank" href="http://www.nsf.org" style="float:left;padding-top:5px">
+            <img src="./picts/nsf-logo.gif" style="height:40px;padding-right:6px;"/>
+        </a>
+        <a target="_blank" href="http://www.cyverse.org" style="float:right;padding-top:7px">
+            <img src="./picts/PoweredbyCyverse_LogoSquare_0_0.png" style="height:35px;"/>
+        </a>
+    </div>
+    <div class="small" style="float:right;padding-right:15px;padding-top:8px;text-align:center;">
+    	<a target="_blank" href="http://www.youtube.com/user/CoGeVids" style="color:gray;">
+			<img src="./picts/YouTube-icon-full_color.png" style="width:27px;height:19px;"/><br>CoGe Vids
+		</a>
+	</div>
+    <a target="_blank" href="http://genomevolution.org/wiki/" style="float:right;padding:2px;margin-right:18px;margin-top:8px;border:1px solid green;border-radius:5px;">
+    	<img src="./picts/CoGePedia_icon.png"/>
+    </a>
+    <div style="float:right;padding-right:15px;padding-top:8px">
+        <a target="_blank" href="http://lyonslab.net">
+            <img style="width:100px;height:27px;" src="./picts/LyonsLab-logo.png"/>
+        </a>
+    </div>
+    <div style="float:right;padding-right:20px;padding-top:15px;">
+	    <a href="https://twitter.com/CoGeUpdates" class="twitter-follow-button" data-show-count="false" data-show-screen-name="false">Follow @CoGeUpdates</a>
+	    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+	</div>
+    <div class="small" style="padding:5px;color:gray;">
+        <img style="vertical-align:middle;" src="./picts/CoGe_logo_small.png"/>
+        <span>Questions, problems, suggestions?
+        <a href="mailto:coge.genome@gmail.com?subject=CoGe SynMap&body=Link%20to%20page:%20%20https://genomevolution.org/r/n6ou">Contact us</a>
+        or
+        <a href="http://ask.iplantcollaborative.org/questions/scope:all/sort:activity-desc/tags:CoGe/" target="_blank">Ask CyVerse</a></span>
+    </div>
+</div>
+
+<script type="text/javascript">
+	function login_cas() {
+	    var location = document.location.href;
+	    location = location.replace(/&?ticket=([^&]$|[^&]*)/i, ""); // remove existing ticket param -- mdb added 9/7/16 COGE-724
+		var redirect_url = 'https://auth.iplantcollaborative.org/cas4' + '/login?service=' + location; // mdb added 3/25/15 for cas update
+		document.location.href = redirect_url; 
+		return true;
+	}
+
+    $(document).ready(function(){
+        if ("".match(/public/i)) { return; }
+        else { $('#logout').show(); }
+    });
+
+    // analytics
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-3802985-1', 'genomevolution.org');
+    ga('send', 'pageview');
+</script>
+<!-- -->
+</BODY>
+</HTML>
+
