@@ -14,6 +14,10 @@ import sys
 
 if len(sys.argv)>1 and sys.argv[1]=='xy':
     isXY = True
+    if len(sys.argv)>2:
+        outFile = sys.argv[2]
+    else:
+        outFile = 'data.js'
 else:
     isXY = False
 
@@ -28,8 +32,9 @@ with open('ks/tags.txt') as f:
     for line in f:
         line = line.replace('\n','')
         i, t = line.split(',')
-        tags.append(t)
+        #if int(i)!=4242 and int(i)!=28918:
         interest.append(i)
+        tags.append(t)
 
 print interest
 print tags
@@ -78,7 +83,7 @@ if isXY:
         'cat':i,
         'tag':tags[i]} for i,d in enumerate(xCap)]
 
-    with open('data.js', 'w') as f:
+    with open(outFile, 'w') as f:
         f.write('var data = \n')
         json.dump(x,f, indent = 2)
 
