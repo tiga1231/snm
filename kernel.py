@@ -10,6 +10,12 @@ def k(ks, sigma=1):
 ##    smaller sigma, sharper
     return np.exp(- ks * sigma)
 
+def centralize(M):
+    a,b = M.shape
+    assert a==b
+    H = np.eye(a) - np.ones(a)/a 
+    return H.dot(M).dot(H)
+
 
 def buildMatrix(df):
     '''convert from ks list to ks matrix'''
@@ -61,12 +67,10 @@ def kernel3(ksfile, sigma=1):
     
     g1, g2 = ksfile.split('/')[-1].split('.')[0].split('_')
     g1, g2 = int(g1), int(g2)
-    print g1,g2
     genomeInfo = pd.read_csv('ks/geneCount.txt',
                              index_col = 'id')
     g1Count = genomeInfo['geneCount'][g1]
     g2Count = genomeInfo['geneCount'][g2]
-    print g1Count,g2Count 
     return kernel2(df, sigma, g1Count, g2Count)
 
 ########################################################
