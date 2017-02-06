@@ -6,7 +6,6 @@ import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import pandas as pd
 
 from kernel import kernel,centralize
 from clean import cleanKS
@@ -48,26 +47,30 @@ if debug:
     print 'genomeIDs'
     print genomeIDs
 
-x = pd.DataFrame(columns=genomeIDs, index=genomeIDs, data=0.0)
+
+x = np.ndarray(shape=[len(interest), len(interest)] )
 
 for f in files:
     genA, genB = f.split('/')[-1].split('.')[0].split('_')
     genA, genB = int(genA), int(genB)
+    i,j = genomeIDs.index(genA), genomeIDs.index(genB)
     ki = kernel(f, sigma=1)
-    x[genA][genB] = ki
-    x[genB][genA] = ki
+    x[i][j] = ki
+    x[j][i] = ki
 
-for i in genomeIDs:
+for i in range(len(genomeIDs)):
     x[i][i] = 1
-    
-print 'dot product matrix'
-print x
+
+if debug:
+    print 'dot product matrix'
+    print x
 
 x = centralize(x)
 
 pca = PCA(n_components=3)
 pca.fit(x)
-print 'pca ratio', pca.explained_variance_ratio_
+if debug:
+    print 'pca ratio', pca.explained_variance_ratio_
 
 
 xCap = pca.transform(x)
