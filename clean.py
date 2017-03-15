@@ -52,13 +52,13 @@ def cleanKS(gids = ['11691', '7057', '28918', '25571', '4242']):
     for f in glob('ks/cleaned/*.*'):
         os.remove(f)
     
-    for filename in glob('ks/real/*.ks'):
+    for filename in glob('data/real/*.ks'):
     ##    get genome IDs from filename
         g1, g2 = filename.split('/')[-1].split('.')[0].split('_')
     ##    if this file is of interest
         if g1 in gids and g2 in gids:
             
-            saveName = 'ks/cleaned/' + g1 + '_' + g2 + '.ks'
+            saveName = 'data/cleaned/' + g1 + '_' + g2 + '.ks'
             with open(filename) as f:
                 l = [i for i in f.readlines() \
                              if not i.startswith('#') \

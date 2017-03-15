@@ -13,7 +13,7 @@ gids = ['11691', '25571']#,'7057','28918','4242','28814']
 meta = {}
 chrNames = [0,0]
 for j,gid in enumerate(gids):
-    with open('ks/meta/'+gid) as meta_file:    
+    with open('data/meta/'+gid) as meta_file:    
         meta[gid] = json.load(meta_file)
         geneCountSorted = sorted(meta[gid]['chromosomes'],
                 key = lambda x:x['gene_count'],
@@ -31,7 +31,7 @@ K = pd.DataFrame(
 
 #build K, the chr ks matrix, each entry is a dot product
 #measure of a chromosome pair
-for fpath in glob('ks/cleanChrTmp/*.*'):
+for fpath in glob('data/cleanChrTmp/*.*'):
     s = fpath.split('/')[-1].split('|')
     gid1 = s[0].split('_')[0]
     gid2 = s[1].split('_')[0]
@@ -57,7 +57,7 @@ for fpath in glob('ks/cleanChrTmp/*.*'):
         K[chr2][chr1] = k
 
 
-np.savetxt('k.txt',K.as_matrix(), '%2.2f', ', ','\n')
+#np.savetxt('k.txt',K.as_matrix(), '%2.2f', ', ','\n')
 pca = PCA(n_components = 2)
 pca.fit(K)
 x = pca.transform(K)
