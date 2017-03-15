@@ -67,7 +67,7 @@ def kernel3(ksfile, sigma=1):
     
     g1, g2 = ksfile.split('/')[-1].split('.')[0].split('_')
     g1, g2 = int(g1), int(g2)
-    genomeInfo = pd.read_csv('ks/geneCount.txt',
+    genomeInfo = pd.read_csv('data/geneCount.txt',
                              index_col = 'id')
     g1Count = genomeInfo['geneCount'][g1]
     g2Count = genomeInfo['geneCount'][g2]
@@ -77,7 +77,7 @@ def kernel3(ksfile, sigma=1):
 #### read ks.txt
 
 if __name__ == '__main__':
-    print kernel3('ks/cleaned/11691_7057.ks')
+    print kernel3('data/cleaned/11691_7057.ks')
 ##    print kernel('ks/ksBB.txt')
 ##    
 ##    

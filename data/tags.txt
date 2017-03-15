@@ -1,0 +1,8 @@
+25571,human
+11691,chimp
+7057,dog
+28918,mouse
+4242,E.coli
+28814,gorilla
+28041,cat
+8143,horse

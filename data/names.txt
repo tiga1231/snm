@@ -1,0 +1,31 @@
+Homo sapiens (human) (id26416)
+unmasked (v38.p2,id 25571)
+gene count: 75538
+
+Pan troglodytes (chimpanzee) (id26868)
+unmasked (v3,id 11691)
+gene count: 32849
+
+Canis lupus familiaris (dog) (id25934)
+unmasked (v3,id 7057)
+gene count: 33202
+
+Mus musculus (house mouse) (id40489)
+unmasked (vGRCm38.p4,id 28918)
+gene count: 79361
+
+Escherichia coli K12 strain K-12 substrain MG1655 (id24290)
+unmasked (v2,id 4242)
+gene count: 8509
+
+Gorilla gorilla (western gorilla) (id36087)
+unmasked (vgorGor3.1,id 28814)
+gene count: 34297
+
+	
+Felis catus (domestic cat) 
+(v6.2, id 28041): unmasked
+
+	
+Equus caballus (horse) 
+(v3, id 8143): unmasked

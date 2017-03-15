@@ -11,6 +11,7 @@ from kernel import kernel,centralize
 from clean import cleanKS
 
 
+dataRoot = 'data/'
 debug = True
 
 if len(sys.argv)>1:
@@ -25,20 +26,20 @@ includeGenome = ['11691', '25571','7057','28918','4242','28814','28041','8143']
 
 tags = []
 interest = []
-with open('ks/tags.txt') as f:
+with open(dataRoot + 'tags.txt') as f:
     for line in f:
         line = line.replace('\n','')
-        i, t = line.split(',')
+        i, tag = line.split(',')
         if i in includeGenome:
             interest.append(i)
-            tags.append(t)
+            tags.append(tag)
 
 if debug:
     print 'tags'
     print tags
 
 cleanKS(interest)
-path = 'ks/cleaned/*.ks'
+path = dataRoot + 'cleaned/*.ks'
 files = glob(path)
 
 genomeIDs = [int(g) for g in interest]
@@ -86,8 +87,10 @@ if isJson:
 
 else:
     fig = plt.figure()
+    '''
+    #3d plot on first 3 pc
     ax = fig.add_subplot(121, projection = '3d')
-    ax.scatter(xCap[:,0],xCap[:,1],xCap[:,2], color = 'bbbbrb')
+    ax.scatter(xCap[:,0],xCap[:,1],xCap[:,2])
     for i,pt in enumerate(xCap):
         ax.text(pt[0],pt[1],pt[2],tags[i])
     limit = np.max(np.abs(xCap))
@@ -97,9 +100,9 @@ else:
     ax.set_xlabel('1st')
     ax.set_ylabel('2nd')
     ax.set_zlabel('3rd')
-
-    ax = fig.add_subplot(122)
-    ax.scatter(xCap[:,0],xCap[:,1], color='bbbbrb')
+    '''
+    ax = fig.add_subplot(111)
+    ax.scatter(xCap[:,0],xCap[:,1])
     ax.axis('square')
     for i,pt in enumerate(xCap):
         ax.text(pt[0],pt[1], tags[i])
