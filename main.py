@@ -5,17 +5,20 @@ from pca import pca
 def main():
     
     level = 3
-    ids = ['11691','25571','7057','28918','4242','28814']#'28041',,'8143'
-
+    ids = ['11691','25571','7057','28918','4242','28814','28041','8143']
+    
+    #pca
     x,tags = pca(level, ids)
     
-    
+    #display options
     mode = argv[1]
     if mode == 'matplotlib':
         import matplotlib.pyplot as plt
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        plt.plot(x[:,0],x[:,1],'o')
+        ax.plot(x[:,0],x[:,1],'o')
+        ax.axis('equal')
+        ax.grid(color='grey', linestyle='-', linewidth=0.3)
         for i,pt in enumerate(x):
             ax.text(pt[0],pt[1], tags[i])
         plt.show()   

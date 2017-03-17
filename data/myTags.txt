@@ -1,8 +1,8 @@
-25571,human
-11691,chimp
-7057,dog
-28918,mouse
 4242,E.coli
-28814,gorilla
-28041,cat
+7057,dog
 8143,horse
+11691,chimp
+25571,human
+28814,gorilla
+28918,mouse
+28041,cat
