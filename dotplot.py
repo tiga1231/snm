@@ -5,9 +5,20 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-ksf = ksFiles['11691_25571']
-mf1 = metaFiles['11691']#chimp
-mf2 = metaFiles['25571']#human
+gid1 = "11691"#chimp
+gid2 = "25571"#human
+
+gid1 = "7057"#dog
+gid2 = "28041"#cat
+
+try:
+    ksf = ksFiles[gid1+'_'+gid2]
+except KeyError:
+    ksf = ksFiles[gid2+'_'+gid1]
+    gid1, gid2 = gid2, gid1
+
+mf1 = metaFiles[gid1]
+mf2 = metaFiles[gid2]
 
 
 for mf in [mf1, mf2]:
@@ -65,8 +76,14 @@ x2 = x2 + shift2# - o2
 plt.scatter(x1,x2, c=ks, 
             s=5, cmap='rainbow',
             alpha=0.8)
-plt.xticks(list(set(shift1)))
-plt.yticks(list(set(shift2)))
+
+plt.xlabel(genomeTags[gid1])
+plt.ylabel(genomeTags[gid2])
+
+x = sorted(list(set(shift1)))
+plt.xticks(x, [i[0] for i in m1])
+x = sorted(list(set(shift2)))
+plt.yticks(x, [i[0] for i in m2])
 plt.grid()
 
 plt.colorbar()
