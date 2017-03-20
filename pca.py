@@ -21,7 +21,20 @@ def pca2(ids):
     pca = KernelPCA(n_components=2,kernel='precomputed')
     #pca = PCA(n_components=n)
     xCap = pca.fit_transform(x)
+
+    '''
+    from scipy.spatial.distance import pdist, squareform
+    d2 = squareform(pdist(xCap))
+    print d2
+    import matplotlib.pyplot as plt
+    plt.subplot(131)
+    plt.imshow(-d2)
+    plt.subplot(132)
+    plt.imshow(-d2**2)
+    plt.subplot(133)
+    plt.imshow(x)'''
     tags = [genomeTags[i] for i in ids]
+    
     #print x
     #print t
     #print pca.explained_variance_ratio_

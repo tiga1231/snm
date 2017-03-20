@@ -7,3 +7,5 @@ tmp/
 *.ks
 *.fasta
 data/meta/*
+old/*
+viz/xy

@@ -8,7 +8,7 @@ def main():
     
     level = 2
     ids = ['11691','25571','7057','28918','4242','28814','28041','8143']
-    ids = sample(ids, 3)
+    ids = sample(ids, 6)
     #pca
     x,tags = pca(level, ids)
     
