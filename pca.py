@@ -17,6 +17,7 @@ def pca(level, ids):
         
 def pca2(ids):
     x = genomeKernelMatrix(ids)
+    print x
     pca = KernelPCA(n_components=2,kernel='precomputed')
     #pca = PCA(n_components=n)
     xCap = pca.fit_transform(x)

@@ -1,17 +1,24 @@
 import numpy as np
 from sys import argv
 from pca import pca
+from random import sample
+
 
 def main():
     
-    level = 3
+    level = 2
     ids = ['11691','25571','7057','28918','4242','28814','28041','8143']
-    
+    ids = sample(ids, 3)
     #pca
     x,tags = pca(level, ids)
     
     #display options
-    mode = argv[1]
+    try:
+        mode = argv[1]
+    except IndexError:
+        mode = 'matplotlib'
+        
+        
     if mode == 'matplotlib':
         import matplotlib.pyplot as plt
         fig = plt.figure()
