@@ -1,4 +1,5 @@
 from glob import glob
+import os
 
 dataRoot = 'data/'
 ksRoot = dataRoot + 'ks/'
@@ -11,12 +12,12 @@ with open(genomeTags) as f:
 
 ksFiles = glob(ksRoot+'*')
 ksFiles = dict([
-    (f.split('/')[-1].split('.')[0], f)        
+    (os.path.split(f)[1].split('.')[0], f)        
     for f in ksFiles])
 
 metaFiles = glob(metaRoot+'*')
 metaFiles = dict([
-    (f.split('/')[-1], f)
+    (os.path.split(f)[1], f)
     for f in metaFiles
     ])
 
