@@ -5,12 +5,13 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 gid1 = "11691"#chimp
 gid2 = "25571"#human
-
+'''
 gid1 = "7057"#dog
 gid2 = "28041"#cat
-
+'''
 try:
     ksf = ksFiles[gid1+'_'+gid2]
 except KeyError:
@@ -33,15 +34,10 @@ for mf in [mf1, mf2]:
         m2 = meta
 
 
-def offset1(name):
-    names = [i[0] for i in m1]
+def offset(name, m):
+    names = [i[0] for i in m]
     c = names.index(name)
-    return sum([i[1] for i in m1][:c])
-
-def offset2(name):
-    names = [i[0] for i in m2]
-    c = names.index(name)
-    return sum([i[1] for i in m2][:c])
+    return sum([i[1] for i in m][:c])
 
 def getMin(name, x1, names):
     return np.min([x1[i] for i in xrange(len(x1)) if names[i]==name])
@@ -62,8 +58,8 @@ chrName2 = X[:,15]
 x1 = X[:,4].astype(np.int)
 x2 = X[:,16].astype(np.int)
 
-shift1 = np.array([offset1(name) for name in chrName1])
-shift2 = np.array([offset2(name) for name in chrName2])
+shift1 = np.array([offset(name,m1) for name in chrName1])
+shift2 = np.array([offset(name,m2) for name in chrName2])
 '''
 mins1 = dict([name, getMin(name, x1, chrName1)] for name in set(chrName1))
 mins2 = dict([name, getMin(name, x2, chrName2)] for name in set(chrName2))
