@@ -4,6 +4,8 @@ from flask import request
 import json
 from random import random
 import numpy as np
+from scipy.optimize import minimize
+
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -46,24 +48,84 @@ def makeWebData(z):
 
 
 
+def obj(beta, x, z, w):
+    beta = beta.reshape([x.shape[1],2])
+    w = np.diag(w)
+    a = x.dot(beta)-z
+    return a.T.dot(w).dot(a)
+
+def der(beta, x, z, w):
+    beta = beta.reshape([x.shape[1],2])
+    return 2*x.T.dot(np.diag(w)).dot(x.dot(beta)-z)
+
+
+def c1(beta):
+    beta = beta.reshape([-1,2])
+    res = beta[:,0].dot(beta[:,0]) - 1
+    return res
+def jac1(beta):
+    return np.array([2*beta[i] if i%2==0 else 0 for i in range(len(beta))])
+
+def c2(beta):
+    beta = beta.reshape([-1,2])
+    res = beta[:,1].dot(beta[:,0])
+    return res
+def jac2(beta):
+    return np.array([beta[i+1] if i%2==0 else beta[i-1] for i in range(len(beta))])
+
+
+def c3(beta):
+    beta = beta.reshape([-1,2])
+    res = beta[:,1].dot(beta[:,1]) - 1
+    return res
+def jac3(beta):
+    return np.array([2*beta[i] if i%2==1 else 0 for i in range(len(beta))])
+
+
 def update(d):
     global zUser, x, z
     ziUser = np.array([ d['x'], d['y'] ])
     zUser[int(d['i'])] = ziUser
-    print zUser
     if len(zUser) >= 2:
         zU = np.array(zUser.values())
         xU = x[zUser.keys()]
         
         global a,b
-        lm = LinearRegression()
-        lm.fit(np.concatenate([x,xU]), 
-                np.concatenate([z,zU]), 
-                np.concatenate( [a*np.ones(x.shape[0]), b*np.ones(xU.shape[0]) ] ))
-        beta = lm.coef_.T
-        '''fig = plt.figure()
+        cons = (
+                {'type': 'eq', 'fun' : c1, 'jac' : jac1},
+                {'type': 'eq', 'fun' : c2, 'jac' : jac2},
+                {'type': 'eq', 'fun' : c3, 'jac' : jac3},
+                )
+        beta0 = np.random.random([x.shape[1],z.shape[1]])
+        
+        if a == 0:
+            weight = np.ones(zU.shape[0])
+            xx = xU
+            zz = zU
+
+        elif b==0:
+            weight = np.ones(z.shape[0])
+            xx = x
+            zz = z
+            
+        else :
+            
+            weight = np.concatenate([  a/z.shape[0]  *np.ones(z.shape[0]),
+                                    b/zU.shape[0]  *np.ones(zU.shape[0])])
+            xx = np.concatenate([x,xU])
+            zz = np.concatenate([z,zU])
+        
+        res = minimize(obj, beta0, args=(xx,zz,weight), jac=der,
+                    constraints=cons, 
+                    options={'disp': True, 'maxiter': 100},
+                    method='SLSQP'
+                    )
+        beta = res.x.reshape([-1,2])
+        
+        '''
+        fig = plt.figure()
         ax = fig.add_subplot(111,projection='3d')
-        ax.scatter(pU[:,0], pU[:,1],pU[:,2])
+        ax.scatter(xU[:,0], xU[:,1],xU[:,2])
         ax.scatter(x[:,0], x[:,1], x[:,2])
         plt.show()'''
         zNew = x.dot(beta)

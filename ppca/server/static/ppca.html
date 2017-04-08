@@ -7,6 +7,9 @@
 svg{
 background: #eee;
 }
+body{
+background: #fff;
+}
 text{
 fill: #fff;
 font-size: 20px;
@@ -22,22 +25,32 @@ font-family: "Comic Sans MS", cursive, sans-serif
     user-select: none;
 }
 
+#gif{
+    position: absolute;
+    left: 200px;
+    top: -60px;
+    clip: rect(60px,240px,230px,70px);
+}
+input{
+margin-bottom: 34px;
+}
 </style>
 </head>
 
 <body>
+
+
 <div>
 <p>Drag >= 2 points to start</p>
 <button id="reset" onclick="reset()">reset</button>
-</div>
-<div>
 <p id="pK" >K = 1</p>
 0<input id="sliderK" onchange="setUserWeight();" type="range" min=0 max=1 step=0.05 value=1></input>1
-
 </div>
+
+
 <svg id='interactivePlot' width=500 height=500></svg>
 <svg id='feedbackPlot' width=500 height=500></svg>
-<img src='/static/data.gif' />
+<img id='gif' src='/static/data.gif' width=300px height=300px />
 <script>
 'use strict';
 
@@ -137,7 +150,7 @@ function plot(data, svg){
 function init(){
     d3.json('/data',
         function(data){
-            setUserWeight();
+            //setUserWeight();
             plot(data, iPlot);
             plot(data, fPlot);
             
