@@ -27,34 +27,46 @@ font-family: "Comic Sans MS", cursive, sans-serif
 
 <body>
 <div>
+<p>Drag >= 2 points to start</p>
 <button id="reset" onclick="reset()">reset</button>
 </div>
 <div>
-<p>K:</p>
-0<input id="sliderK" onchange="setUserWeight()" type="range" min=0 max=1 step=0.05 value=1></input>1
+<p id="pK" >K = 1</p>
+0<input id="sliderK" onchange="setUserWeight();" type="range" min=0 max=1 step=0.05 value=1></input>1
+
 </div>
 <svg id='interactivePlot' width=500 height=500></svg>
 <svg id='feedbackPlot' width=500 height=500></svg>
-    
+<img src='/static/data.gif' />
 <script>
+'use strict';
 
+var iPlot = d3.select("#interactivePlot");
+var fPlot = d3.select("#feedbackPlot");
+init();
+
+//widget events
 function setUserWeight(){
     var slider = document.getElementById('sliderK');
     var k = slider.value;
     setab(1-k, k);
+    var p = document.getElementById('pK');
+    p.innerText = 'K = ' + k;
+    var d = d3.select('#interactivePlot').selectAll('.changed').data()[0];
+    send(d);
 }
+
+
 function reset(){
     window.location = '/resetdata';
 }
 
 
-'use strict';
-var iPlot = d3.select("#interactivePlot");
-var fPlot = d3.select("#feedbackPlot");
 
 
+//utilities
 function color(d,i){
-    if (i < 12){
+    if (d.cat == 0){
         return 'red';
     }else{
         return 'blue';
@@ -90,9 +102,9 @@ function plot(data, svg){
         d.x = sx.invert( sx(d.x) + d3.event.x);
         d.y = sy.invert( sy(d.y) + d3.event.y);
         send(d);
-        console.log(d3.select(this).select('circle').attr('fill'));
-        var c = d3.color(d3.select(this).select('circle').attr('fill')).darker(); 
-        d3.select(this).select('circle').attr('fill',c);   
+        d3.select(this).classed('changed', true);
+
+        d3.select(this).select('circle').attr('fill',function(d,i){return d3.color(color(d)).darker()});   
         
     })
 
@@ -119,21 +131,23 @@ function plot(data, svg){
     .text(function(d){return d.tag})
     .classed('noselect', true);
     
-
-    //drag event
 }
 
 //init draw
-d3.json('/data',
-    function(data){
-        plot(data, iPlot);
-        plot(data, fPlot);
-});
-
+function init(){
+    d3.json('/data',
+        function(data){
+            setUserWeight();
+            plot(data, iPlot);
+            plot(data, fPlot);
+            
+    });
+}
 
 function setab(a,b){
     d3.request('/setab?a='+a+'&b='+b).get();
 }
+
 function send(d){
     //update draw
     d3.request('/data')

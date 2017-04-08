@@ -20,8 +20,8 @@ app = Flask(__name__)
 def initData():
     #generate data
     phi = np.arange(0,2*np.pi, 2*np.pi / 12)
-    x = [[1.01*np.cos(i)+noise(.05), np.sin(i)+noise(.05), -.2] for i in phi]
-    x += [[1.01*np.cos(i)+noise(.05), np.sin(i)+noise(.05), .2] for i in phi]
+    x = [[1.01*np.cos(i)+noise(.05), np.sin(i)+noise(.05), -.2+noise(0.05)] for i in phi]
+    x += [[1.01*np.cos(i)+noise(.05), np.sin(i)+noise(.05), .2+noise(0.05)] for i in phi]
     x = np.array(x)
     return x
 
@@ -40,7 +40,7 @@ def init():
 
 
 def makeWebData(z):
-    data = [{'i':i, 'x':d[0], 'y':d[1], 'tag':i} 
+    data = [{'i':i, 'x':d[0], 'y':d[1], 'tag':i, 'cat':0 if i<len(z)/2 else 1} 
                             for i,d in enumerate(z)]
     return data
 
