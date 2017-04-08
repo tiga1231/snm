@@ -26,10 +26,18 @@ font-family: "Comic Sans MS", cursive, sans-serif
 </head>
 
 <body>
+<div><button id="reset" onclick="reset()">reset</button></div>
+
 <svg id='interactivePlot' width=500 height=500></svg>
 <svg id='feedbackPlot' width=500 height=500></svg>
 
 <script>
+
+function reset(){
+    window.location = '/resetdata';
+}
+
+
 'use strict';
 var iPlot = d3.select("#interactivePlot");
 var fPlot = d3.select("#feedbackPlot");
@@ -37,10 +45,16 @@ var fPlot = d3.select("#feedbackPlot");
 function plot(data, svg){
     svg.selectAll('.point').remove();
     var sx = d3.scaleLinear()
-                .domain(d3.extent(data, function(d){return d.x}))
+                .domain([
+                    d3.min(data, function(d){return Math.min(d.x, d.y)}),
+                    d3.max(data, function(d){return Math.max(d.x, d.y)})
+                ])
                 .range([20,480]);
     var sy = d3.scaleLinear()
-                .domain(d3.extent(data, function(d){return d.y}))
+                .domain([
+                    d3.min(data, function(d){return Math.min(d.x, d.y)}),
+                    d3.max(data, function(d){return Math.max(d.x, d.y)})
+                ])
                 .range([480,20]);
     
     var drag = d3.drag()
@@ -95,7 +109,7 @@ function plot(data, svg){
 }
 
 //init draw
-d3.json('http://localhost:8000/data',
+d3.json('/data',
     function(data){
         plot(data, iPlot);
         plot(data, fPlot);
@@ -104,7 +118,7 @@ d3.json('http://localhost:8000/data',
 
 function send(d){
     //update draw
-    d3.request('http://localhost:8000/data')
+    d3.request('/data')
     .header("Content-Type", "application/json")
     .post(
         JSON.stringify(d),
