@@ -25,8 +25,11 @@ def initData():
     x = np.array(x)
     return x
 
+
 def init():
     global x, data, zUser
+    global a,b
+    a,b = 0,1
     zUser = {}
     x = initData()
     u,s,vt = svd(x)
@@ -34,6 +37,7 @@ def init():
     w = (vt.T)[:,:2].dot(np.diag(s[:2]))
     z = x.dot(w)
     data = makeWebData(z)
+
 
 def makeWebData(z):
     data = [{'i':i, 'x':d[0], 'y':d[1], 'tag':i} 
@@ -51,18 +55,19 @@ def update(d):
         zU = np.array(zUser.values())
         xU = x[zUser.keys()]
         
+        global a,b
         lm = LinearRegression()
         lm.fit(np.concatenate([x,xU]), 
                 np.concatenate([z,zU]), 
-                np.concatenate( [0*np.ones(x.shape[0]), 1*np.ones(xU.shape[0]) ] ))
+                np.concatenate( [a*np.ones(x.shape[0]), b*np.ones(xU.shape[0]) ] ))
         beta = lm.coef_.T
         '''fig = plt.figure()
         ax = fig.add_subplot(111,projection='3d')
         ax.scatter(pU[:,0], pU[:,1],pU[:,2])
         ax.scatter(x[:,0], x[:,1], x[:,2])
         plt.show()'''
-        z = x.dot(beta)
-        dataNew = makeWebData(z)
+        zNew = x.dot(beta)
+        dataNew = makeWebData(zNew)
         return dataNew
     else:
         global data
@@ -92,8 +97,17 @@ def dataReq():
     return json.dumps(data)
 
 
+@app.route('/setab', methods=['GET'])
+def setab():
+    global a,b
+    a = request.args.get('a')
+    b = request.args.get('b')
+    a,b = float(a), float(b)
+    print 'weights set to', a, b
+    return 'getit'
 
 
+a,b = 0,1
 zUser = {}
 x = initData()
 u,s,vt = svd(x)

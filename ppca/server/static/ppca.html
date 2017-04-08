@@ -26,13 +26,23 @@ font-family: "Comic Sans MS", cursive, sans-serif
 </head>
 
 <body>
-<div><button id="reset" onclick="reset()">reset</button></div>
-
+<div>
+<button id="reset" onclick="reset()">reset</button>
+</div>
+<div>
+<p>K:</p>
+0<input id="sliderK" onchange="setUserWeight()" type="range" min=0 max=1 step=0.05 value=1></input>1
+</div>
 <svg id='interactivePlot' width=500 height=500></svg>
 <svg id='feedbackPlot' width=500 height=500></svg>
-
+    
 <script>
 
+function setUserWeight(){
+    var slider = document.getElementById('sliderK');
+    var k = slider.value;
+    setab(1-k, k);
+}
 function reset(){
     window.location = '/resetdata';
 }
@@ -41,6 +51,16 @@ function reset(){
 'use strict';
 var iPlot = d3.select("#interactivePlot");
 var fPlot = d3.select("#feedbackPlot");
+
+
+function color(d,i){
+    if (i < 12){
+        return 'red';
+    }else{
+        return 'blue';
+    }
+}
+
 
 function plot(data, svg){
     svg.selectAll('.point').remove();
@@ -58,9 +78,7 @@ function plot(data, svg){
                 .range([480,20]);
     
     var drag = d3.drag()
-    .on('start', function(d){
-        d3.select(this).select('circle').attr('fill','red');   
-    })
+    .on('start', function(d){})
     .on('drag', function(d){
         d3.select(this).attr('transform', function(d){
             var x = sx(d.x) + d3.event.x;
@@ -72,7 +90,10 @@ function plot(data, svg){
         d.x = sx.invert( sx(d.x) + d3.event.x);
         d.y = sy.invert( sy(d.y) + d3.event.y);
         send(d);
-        d3.select(this).select('circle').attr('fill','gray');   
+        console.log(d3.select(this).select('circle').attr('fill'));
+        var c = d3.color(d3.select(this).select('circle').attr('fill')).darker(); 
+        d3.select(this).select('circle').attr('fill',c);   
+        
     })
 
     var point = svg.selectAll('.point')
@@ -89,13 +110,7 @@ function plot(data, svg){
 
     point.append('circle')
     .attr('r', 20)
-    .attr('fill', function(d,i){
-        if (i<12){
-            return 'blue';
-        }else{
-            return 'red';
-        }
-    })
+    .attr('fill', color)
     
 
     point.append('text')
@@ -116,6 +131,9 @@ d3.json('/data',
 });
 
 
+function setab(a,b){
+    d3.request('/setab?a='+a+'&b='+b).get();
+}
 function send(d){
     //update draw
     d3.request('/data')
