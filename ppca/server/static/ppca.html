@@ -75,7 +75,13 @@ function plot(data, svg){
 
     point.append('circle')
     .attr('r', 20)
-    .attr('fill', 'gray')
+    .attr('fill', function(d,i){
+        if (i<12){
+            return 'blue';
+        }else{
+            return 'red';
+        }
+    })
     
 
     point.append('text')
