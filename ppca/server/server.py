@@ -61,10 +61,12 @@ def der(beta, x, z, w):
 
 def c1(beta):
     beta = beta.reshape([-1,2])
-    res = beta[:,0].dot(beta[:,0]) - 1
+    res = beta[:,0].dot(beta[:,0]) - beta[:,1].dot(beta[:,1])
     return res
 def jac1(beta):
-    return np.array([2*beta[i] if i%2==0 else 0 for i in range(len(beta))])
+    return np.array([2*beta[i] if i%2==0 
+                    else -2*beta[i] 
+                    for i in range(len(beta))])
 
 def c2(beta):
     beta = beta.reshape([-1,2])
@@ -92,9 +94,9 @@ def update(d):
         
         global a,b
         cons = (
-                {'type': 'eq', 'fun' : c1, 'jac' : jac1},
+                {'type': 'eq', 'fun' : c1, 'jac' : jac1}, #bt b = I*k
                 {'type': 'eq', 'fun' : c2, 'jac' : jac2},
-                {'type': 'eq', 'fun' : c3, 'jac' : jac3},
+                #{'type': 'eq', 'fun' : c3, 'jac' : jac3},
                 )
         beta0 = np.random.random([x.shape[1],z.shape[1]])
         
