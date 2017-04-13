@@ -49,17 +49,20 @@ def makeWebData(z):
 
 
 def obj(beta, x, z, w):
+    '''objective function'''
     beta = beta.reshape([x.shape[1],2])
     w = np.diag(w)
     a = x.dot(beta)-z
     return a.T.dot(w).dot(a)
 
 def der(beta, x, z, w):
+    '''derivative'''
     beta = beta.reshape([x.shape[1],2])
     return 2*x.T.dot(np.diag(w)).dot(x.dot(beta)-z)
 
 
 def c1(beta):
+    '''constraint 1'''
     beta = beta.reshape([-1,2])
     res = beta[:,0].dot(beta[:,0]) - beta[:,1].dot(beta[:,1])
     return res
@@ -69,12 +72,12 @@ def jac1(beta):
                     for i in range(len(beta))])
 
 def c2(beta):
+    '''constraint 2'''
     beta = beta.reshape([-1,2])
     res = beta[:,1].dot(beta[:,0])
     return res
 def jac2(beta):
     return np.array([beta[i+1] if i%2==0 else beta[i-1] for i in range(len(beta))])
-
 
 def c3(beta):
     beta = beta.reshape([-1,2])
@@ -83,6 +86,8 @@ def c3(beta):
 def jac3(beta):
     return np.array([2*beta[i] if i%2==1 else 0 for i in range(len(beta))])
 
+def append1(x):
+    return np.concatenate([x, np.ones([x.shape[0],1])], axis=1)
 
 def update(d):
     global zUser, x, z
@@ -98,7 +103,7 @@ def update(d):
                 {'type': 'eq', 'fun' : c2, 'jac' : jac2},
                 #{'type': 'eq', 'fun' : c3, 'jac' : jac3},
                 )
-        beta0 = np.random.random([x.shape[1],z.shape[1]])
+        beta0 = np.random.random([x.shape[1]+1,z.shape[1]])
         
         if a == 0:
             weight = np.ones(zU.shape[0])
@@ -111,16 +116,18 @@ def update(d):
             zz = z
             
         else :
-            
             weight = np.concatenate([  a/z.shape[0]  *np.ones(z.shape[0]),
                                     b/zU.shape[0]  *np.ones(zU.shape[0])])
             xx = np.concatenate([x,xU])
             zz = np.concatenate([z,zU])
         
+        xx = append1(xx)
         res = minimize(obj, beta0, args=(xx,zz,weight), jac=der,
                     constraints=cons, 
-                    options={'disp': True, 'maxiter': 100},
-                    method='SLSQP'
+                    options={'disp': True, 
+                            'maxiter': 1000,
+                            'ftol':1e-5},
+                    method='SLSQP',
                     )
         beta = res.x.reshape([-1,2])
         
@@ -130,7 +137,8 @@ def update(d):
         ax.scatter(xU[:,0], xU[:,1],xU[:,2])
         ax.scatter(x[:,0], x[:,1], x[:,2])
         plt.show()'''
-        zNew = x.dot(beta)
+    
+        zNew = append1(x).dot(beta)
         dataNew = makeWebData(zNew)
         return dataNew
     else:
@@ -155,7 +163,7 @@ def dataReq():
     global data
     if request.method == 'POST':
         d = request.get_json()
-        print '<POST> point', d['tag']
+        print '<POST> point', d['tag'], '(%.2f, %.2f)' % (d['x'], d['y'])
         data = update(d)
         #request.args.get('aa')
     return json.dumps(data)
