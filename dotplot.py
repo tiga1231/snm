@@ -1,3 +1,5 @@
+import sys
+
 from config import *
 from kernel import isDataLine
 
@@ -8,10 +10,18 @@ import matplotlib.pyplot as plt
 
 gid1 = "11691"#chimp
 gid2 = "25571"#human
-'''
+
+#'''
 gid1 = "7057"#dog
 gid2 = "28041"#cat
-'''
+#'''
+
+gid1 = "25571"#human
+gid2 = "28041"#cat
+
+gid1 = "3068"#Arabidopsis lyrata
+gid2 = "8"#Arabidopsis thaliana
+
 try:
     ksf = ksFiles[gid1+'_'+gid2]
 except KeyError:
@@ -39,6 +49,7 @@ def offset(name, m):
     c = names.index(name)
     return sum([i[1] for i in m][:c])
 
+
 def getMin(name, x1, names):
     return np.min([x1[i] for i in xrange(len(x1)) if names[i]==name])
 
@@ -48,7 +59,7 @@ with open(ksf) as f:
     X = np.loadtxt(f, dtype = np.str)
 
 X = X[X[:,0]!='NA']
-#X = X[X[:,0].astype(np.float)<0.1]
+X = X[X[:,0]!='undef']
 
 ks = X[:,0].astype(np.float)
 ks[ks==0] = 0.1
@@ -60,30 +71,33 @@ x2 = X[:,16].astype(np.int)
 
 shift1 = np.array([offset(name,m1) for name in chrName1])
 shift2 = np.array([offset(name,m2) for name in chrName2])
-'''
-mins1 = dict([name, getMin(name, x1, chrName1)] for name in set(chrName1))
-mins2 = dict([name, getMin(name, x2, chrName2)] for name in set(chrName2))
-o1 = np.array([mins1[name] for name in chrName1])
-o2 = np.array([mins2[name] for name in chrName2])
-'''
-x1 = x1 + shift1# - o1
-x2 = x2 + shift2# - o2
 
+x1 = x1 + shift1
+x2 = x2 + shift2
+
+plt.figure(figsize = [8,4])
 plt.scatter(x1,x2, c=ks, 
-            s=5, cmap='rainbow',
+            s=1, cmap='gray',
             alpha=0.8)
 
-plt.xlabel(genomeTags[gid1])
-plt.ylabel(genomeTags[gid2])
+plt.axis('square')
+mode = sys.argv[1]
+if mode == 'display':
+    plt.xlabel(genomeTags[gid1])
+    plt.ylabel(genomeTags[gid2])
+    x = sorted(list(set(shift1)))
+    plt.xticks(x, [i[0] for i in m1])
+    x = sorted(list(set(shift2)))
+    plt.yticks(x, [i[0] for i in m2])
+    plt.grid()
+    plt.colorbar()
+    #plt.figure()
+    #plt.hist(X[:,2],bins=75)
+    plt.show()
 
-x = sorted(list(set(shift1)))
-plt.xticks(x, [i[0] for i in m1])
-x = sorted(list(set(shift2)))
-plt.yticks(x, [i[0] for i in m2])
-plt.grid()
-
-plt.colorbar()
-#plt.figure()
-#plt.hist(X[:,2],bins=75)
-plt.show()
+elif mode == 'save':
+    plt.xlim([0,np.max(x1)])
+    plt.ylim([0,np.max(x2)])
+    plt.subplots_adjust(left=0.0, right=1.0, top=1.0, bottom=0.0)
+    plt.savefig(gid1 + '_' + gid2 + '.png')
 

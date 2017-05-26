@@ -6,3 +6,5 @@
 28814,gorilla
 28918,mouse
 28041,cat
+3068,Arabidopsis lyrata
+8,Arabidopsis thaliana

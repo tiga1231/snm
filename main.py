@@ -1,16 +1,20 @@
 import numpy as np
 from sys import argv
 from pca import pca
-from random import sample
-
+from config import *
+import json
 
 def main():
-    
     level = 2
-    ids = ['11691','25571','7057','28918','4242','28814','28041','8143']
-    ids = sample(ids, 6)
-    #pca
+    ids = ['11691','25571','7057','28918','4242','28814','28041','8143']    
     x,tags = pca(level, ids)
+    sizes = []
+    for i in ids:
+        with open(metaFiles[i]) as f:
+            meta = json.load(f)
+            size = reduce(lambda a,x:a+x['length'], meta['chromosomes'], 0)
+            sizes.append(size)
+    print sizes
     
     #display options
     try:
@@ -23,15 +27,15 @@ def main():
         import matplotlib.pyplot as plt
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        ax.plot(x[:,0],x[:,1],'o')
+        for i, pt in enumerate(x):
+            s = 100.0 * sizes[i]/ max(sizes)
+            ax.scatter(pt[0], pt[1], s=s)
+            ax.text(pt[0], pt[1], tags[i])
         ax.axis('equal')
         ax.grid(color='grey', linestyle='-', linewidth=0.3)
-        for i,pt in enumerate(x):
-            ax.text(pt[0],pt[1], tags[i])
         plt.show()   
         
     elif mode == 'json':
-        import json
         data = [{  'x': x[i,0],
                 'y': x[i,1],
                 'tag': tags[i]
