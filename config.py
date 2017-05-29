@@ -21,3 +21,7 @@ metaFiles = dict([
     for f in metaFiles
     ])
 
+if __name__ == '__main__':
+    print ksFiles
+    print metaFiles
+

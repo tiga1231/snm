@@ -8,6 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+
+
 gid1 = "11691" #chimp
 gid2 = "25571" #human
 

@@ -1,11 +1,14 @@
 *.pyc
 *~
 .ipynb_checkpoints
-img/
-tmp/
 
-*.ks
-*.fasta
+
+
+data/ks/*.ks
+data/fasta/*.fasta
 data/meta/*
+data/cleaned/*
+
 old/*
-viz/xy
+tmp/
+img/
