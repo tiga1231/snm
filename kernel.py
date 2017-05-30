@@ -96,5 +96,13 @@ def chromosomeKernelMatrix(ids):
     #TODO
     pass
 
+
+def getnpz():
+    npz = np.load('data/ks_small.npz')
+    ks = npz[npz.keys()[0]]
+    print ks[ks<0.1]
+
+
 if __name__=='__main__':
-    print kernel2(25571, 11691)
+    getnpz()
+    #print kernel2(25571, 11691)
