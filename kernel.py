@@ -102,35 +102,51 @@ def chromosomeKernelMatrix(ids):
 
 
 def diagFilter(img, anti=False):
+
+    '''
+    The matrix starts at upper left corner
+    so the diag mask is designed to capture elements of form
+    img_{i,i}, img_{i,i+1}, img_{i, i+k}... 
+    '''
+
     if anti:
-        mask = np.array([[-.5,0,0],[0,1,0],[0,0,-.5]])
+        mask = np.array([[-.5,  0,  0],
+                         [  0,  1,  0],
+                         [  0,  0,-.5]])
     else:
-        mask = np.array([[0,0,-.5],[0,1,0],[-.5,0,0]])
+        mask = np.array([[  0,  0,-.5],
+                         [  0,  1,  0],
+                         [-.5,  0,  0]])
     result = convolve2d(img,mask,'same')
     result[result<0] = 0
     return result
 
 
-def filterTest():
+def filterTest(lam=1.0):
     '''compute similarity w/ or w/o diag and dump a dict to .pkl'''
     import matplotlib.pyplot as plt
     npz = np.load('data/ks_small.npz')
     kk = {}
     for name,ks in npz.items():
         a,b = name.split('_')
-        print '-'*20
-        print name
-        print '-'*20
-        ks = np.exp(-2*ks)
-        k = np.sum(ks) / (countGene(a) * countGene(b))**0.5
-        print k
-        #ka = np.sum(diagFilter(ks)) / (countGene(a) * countGene(b))**0.5
+        #print '-'*20
+        print name,
+        #print '-'*20
+        ks = np.exp(- lam * ks)
+        #TODO the normalizing factor is to be discussed
+        #k = np.sum(ks) / (countGene(a) * countGene(b))**0.5
+        ka = np.sum(diagFilter(ks)) / (countGene(a) * countGene(b))**0.5
         #kb =  np.sum(diagFilter(ks)) / (countGene(a) * countGene(b))**0.5
-        kk[(a,b)] = k
+        
+        #print ka
 
-    print kk
+        #kk[(a,b)] = k
+        kk[(a,b)] = ka
+        #kk[(a,b)] = kb
+
     with open('data/ks.pkl','wb') as f:
         pickle.dump(kk, f)
+    print 
 
 
 def pcaTest():
@@ -146,7 +162,7 @@ def pcaTest():
     for e in exclude:
         gids.remove(e)
     print gids
-
+    print [genomeTags[i] for i in gids]
     m = np.zeros([len(gids), len(gids)])
     for i,x in enumerate(gids):
         for j,y in enumerate(gids):
@@ -167,11 +183,18 @@ def pcaTest():
     for i,g in enumerate(gids):
         plt.scatter(x[i,0], x[i,1])
         plt.text(x[i,0], x[i,1],genomeTags[g])
-    plt.show()
+    #plt.show()
 
     
 
 if __name__=='__main__':
     #print kernel2(25571, 11691)
-    filterTest()
-    pcaTest()
+    import matplotlib.pyplot as plt
+    for i,lam in enumerate([0.1, 1,2,4,8, 16, 32, 64, 128]):
+        filterTest(lam)
+        plt.subplot(3,3,i+1)
+        plt.axis('equal')
+        plt.grid(color='grey', linestyle='-', linewidth=0.3)
+        plt.title('diag only, $e^{-%.1f*ks}$' % lam)
+        pcaTest()
+    plt.show()
