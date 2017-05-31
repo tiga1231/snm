@@ -9,7 +9,7 @@ from kernel import isDataLine
 
 
 t0 = time()
-isTimeOn = False
+isTimeOn = True
 def tick(msg):
     global t0
     if isTimeOn:
@@ -108,8 +108,18 @@ def main():
         img = np.empty([h,w])
         img[:] = np.Inf
         #TODO pick the min ks value for each location
-        img[x2,x1] = ks
-
+        
+        a = {}
+        for i in range(len(ks)):
+            try:
+                a[x1[i], x2[i]] = min(ks[i], a[x1[i],x2[i]])
+            except KeyError:
+                a[x1[i], x2[i]] = ks[i]
+        
+        tick('4')
+        
+        X = np.array([[i[0][0], i[0][1], i[1]] for i in a.items()])
+        img[X[:,1].astype(np.int), X[:,0].astype(np.int)] = X[:,2]
         
         '''
         print '-'*20
@@ -124,7 +134,7 @@ def main():
 
         imgs[gid1+'_'+gid2] = img
         
-        tick('4')
+        tick('5')
    
         '''
         plt.imshow(img, cmap='Greys_r', origin='lower')
@@ -136,8 +146,9 @@ def main():
         #break
     
     print 'saving file...'
-    with open('data.npz', 'w') as f:
+    with open('data/ks_small.npz', 'w') as f:
         np.savez_compressed(f, **imgs)
+    tick('npz saving')
 
 if __name__ == '__main__':
     main()

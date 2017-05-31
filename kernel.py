@@ -1,8 +1,11 @@
-from config import *
 import json
 from math import exp
-import numpy as np
+import pickle
 
+import numpy as np
+from scipy.signal import convolve2d
+
+from config import *
 
 '''Kernel levels:
 1- species      2- genome
@@ -97,12 +100,64 @@ def chromosomeKernelMatrix(ids):
     pass
 
 
-def getnpz():
-    npz = np.load('data/ks_small.npz')
-    ks = npz[npz.keys()[0]]
-    print ks[ks<0.1]
 
+def diagFilter(img, anti=False):
+    if anti:
+        mask = np.array([[-.5,0,0],[0,1,0],[0,0,-.5]])
+    else:
+        mask = np.array([[0,0,-.5],[0,1,0],[-.5,0,0]])
+    result = convolve2d(img,mask,'same')
+    result[result<0] = 0
+    return result
+
+
+def filterTest():
+    import matplotlib.pyplot as plt
+    npz = np.load('data/ks_small.npz')
+    kk = {}
+    for name,ks in npz.items():
+        a,b = name.split('_')
+        print '-'*20
+        print name
+        print '-'*20
+        ks = np.exp(-ks)
+        k = np.sum(ks) / (countGene(a) * countGene(b))**0.5
+        print k
+        #ka = np.sum(diagFilter(ks)) / (countGene(a) * countGene(b))**0.5
+        #kb =  np.sum(diagFilter(ks)) / (countGene(a) * countGene(b))**0.5
+        kk[(a,b)] = k
+
+    print kk
+    with open('ks.pkl','wb') as f:
+        pickle.dump(kk, f)
+
+
+def pcaTest():
+    from sklearn.decomposition import KernelPCA
+    import matplotlib.pyplot as plt
+    with open('data/ks.pkl','rb') as f:
+        k = pickle.load(f)
+    gids = list(set([i[0] for i in k.keys()]))
+    m = np.zeros([len(gids), len(gids)])
+    for i,x in enumerate(gids):
+        for j,y in enumerate(gids):
+            if i == j:
+                m[i,j] = 1
+            elif (x,y) in k:
+                m[i,j] = k[(x,y)]
+                m[j,i] = k[(x,y)]
+            elif (y,x) in k:
+                m[i,j] = k[(y,x)]
+                m[j,i] = k[(y,x)]
+    print m
+    plt.imshow(m)
+    plt.colorbar()
+    plt.show()
+    
+
+    
 
 if __name__=='__main__':
-    getnpz()
     #print kernel2(25571, 11691)
+    #filterTest()
+    pcaTest()
