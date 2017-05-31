@@ -112,6 +112,7 @@ def diagFilter(img, anti=False):
 
 
 def filterTest():
+    '''compute similarity w/ or w/o diag and dump a dict to .pkl'''
     import matplotlib.pyplot as plt
     npz = np.load('data/ks_small.npz')
     kk = {}
@@ -120,7 +121,7 @@ def filterTest():
         print '-'*20
         print name
         print '-'*20
-        ks = np.exp(-ks)
+        ks = np.exp(-2*ks)
         k = np.sum(ks) / (countGene(a) * countGene(b))**0.5
         print k
         #ka = np.sum(diagFilter(ks)) / (countGene(a) * countGene(b))**0.5
@@ -128,16 +129,24 @@ def filterTest():
         kk[(a,b)] = k
 
     print kk
-    with open('ks.pkl','wb') as f:
+    with open('data/ks.pkl','wb') as f:
         pickle.dump(kk, f)
 
 
 def pcaTest():
     from sklearn.decomposition import KernelPCA
     import matplotlib.pyplot as plt
+    from config import genomeTags
+
     with open('data/ks.pkl','rb') as f:
         k = pickle.load(f)
-    gids = list(set([i[0] for i in k.keys()]))
+    gids = list(set([i[0] for i in k.keys()] + [i[1] for i in k.keys()]))
+    
+    exclude = ['3068','8']
+    for e in exclude:
+        gids.remove(e)
+    print gids
+
     m = np.zeros([len(gids), len(gids)])
     for i,x in enumerate(gids):
         for j,y in enumerate(gids):
@@ -149,15 +158,20 @@ def pcaTest():
             elif (y,x) in k:
                 m[i,j] = k[(y,x)]
                 m[j,i] = k[(y,x)]
-    print m
-    plt.imshow(m)
-    plt.colorbar()
-    plt.show()
     
+    np.set_printoptions(precision=2)
+    print m
+    pca = KernelPCA(kernel='precomputed',
+                    n_components=2)
+    x = pca.fit_transform(m)
+    for i,g in enumerate(gids):
+        plt.scatter(x[i,0], x[i,1])
+        plt.text(x[i,0], x[i,1],genomeTags[g])
+    plt.show()
 
     
 
 if __name__=='__main__':
     #print kernel2(25571, 11691)
-    #filterTest()
+    filterTest()
     pcaTest()

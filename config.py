@@ -22,6 +22,7 @@ metaFiles = dict([
     ])
 
 if __name__ == '__main__':
-    print ksFiles
-    print metaFiles
+    #print ksFiles
+    #print metaFiles
+    print genomeTags
 

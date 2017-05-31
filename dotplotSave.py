@@ -34,7 +34,6 @@ def main():
         
         print '-' * 20
         print gid1, gid2
-
         mf1 = metaFiles[gid1]
         mf2 = metaFiles[gid2]
 
@@ -74,7 +73,10 @@ def main():
             X = X[X[:,0]!='undef']
         except IndexError:
             # if no rows at all
-            print gid1, gid2, 'skipped'
+            print gid1, gid2, 'empty'
+            img = np.empty([1,1])
+            img[:] = np.Inf
+            imgs[gid1+'_'+gid2] = img
             continue
 
         ks = X[:,0].astype(np.float)
@@ -107,8 +109,8 @@ def main():
         tick('3')
         img = np.empty([h,w])
         img[:] = np.Inf
-        #TODO pick the min ks value for each location
         
+        #DONE: pick the min ks value for each location
         a = {}
         for i in range(len(ks)):
             try:
