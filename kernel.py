@@ -130,20 +130,22 @@ def filterTest(lam=1.0):
     for name,ks in npz.items():
         a,b = name.split('_')
         #print '-'*20
-        print name,
+        print name
         #print '-'*20
         ks = np.exp(- lam * ks)
+
         #TODO the normalizing factor is to be discussed
         #k = np.sum(ks) / (countGene(a) * countGene(b))**0.5
-        ka = np.sum(diagFilter(ks)) / (countGene(a) * countGene(b))**0.5
+        #ka = np.sum(diagFilter(ks)) / (ks.shape[0]*ks.shape[1])**0.5
         #kb =  np.sum(diagFilter(ks)) / (countGene(a) * countGene(b))**0.5
         
+        k = np.sum(ks) /4 /max(ks.shape[0], ks.shape[1])
+        #4 is the max ks sum across rows
+        #ka = np.sum(diagFilter(ks)) /4 /max(ks.shape[0], ks.shape[1])
+        
         #print ka
-
-        #kk[(a,b)] = k
-        kk[(a,b)] = ka
-        #kk[(a,b)] = kb
-
+        kk[(a,b)] = k
+    print 'dumping data/ks.pkl'
     with open('data/ks.pkl','wb') as f:
         pickle.dump(kk, f)
     print 
@@ -189,10 +191,11 @@ def pcaTest():
 
 if __name__=='__main__':
     #print kernel2(25571, 11691)
+    
     import matplotlib.pyplot as plt
-    for i,lam in enumerate([0.1, 1,2,4,8, 16, 32, 64, 128]):
+    for i,lam in enumerate([1,]):
         filterTest(lam)
-        plt.subplot(3,3,i+1)
+        plt.subplot(1,1,i+1)
         plt.axis('equal')
         plt.grid(color='grey', linestyle='-', linewidth=0.3)
         plt.title('diag only, $e^{-%.1f*ks}$' % lam)

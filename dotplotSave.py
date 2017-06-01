@@ -9,10 +9,10 @@ from kernel import isDataLine
 
 
 t0 = time()
-isTimeOn = True
+isStopWatchOn = True
 def tick(msg):
     global t0
-    if isTimeOn:
+    if isStopWatchOn:
         print msg+':', time()-t0
     t0 = time()
    
@@ -146,11 +146,11 @@ def main():
         plt.show()'''
 
         #break
-    
+    '''
     print 'saving file...'
     with open('data/ks_small.npz', 'w') as f:
         np.savez_compressed(f, **imgs)
     tick('npz saving')
-
+    '''
 if __name__ == '__main__':
     main()
