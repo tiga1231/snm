@@ -146,11 +146,11 @@ def main():
         plt.show()'''
 
         #break
-    '''
+    
     print 'saving file...'
     with open('data/ks_small.npz', 'w') as f:
         np.savez_compressed(f, **imgs)
     tick('npz saving')
-    '''
+    
 if __name__ == '__main__':
     main()

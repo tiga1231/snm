@@ -7,22 +7,19 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-
-
 gid1 = "11691" #chimp
 gid2 = "25571" #human
 
-#'''
+'''
 gid1 = "7057"  #dog
 gid2 = "28041" #cat
-#'''
 
 gid1 = "25571"  #human
 gid2 = "28041"  #cat
 
 gid1 = "3068" #Arabidopsis lyrata
 gid2 = "8"    #Arabidopsis thaliana
+'''
 
 try:
     ksf = ksFiles[gid1+'_'+gid2]
@@ -87,7 +84,7 @@ x2 = x2 + shift2
 mode = sys.argv[1]
 if mode == 'display':
     plt.scatter(x1,x2, c=ks, 
-                s=1, cmap='gray', # darker the more similar
+                s=1, #cmap='gray', # darker the more similar (??)
                 alpha=0.8)
     plt.axis('square')
     plt.xlabel(genomeTags[gid1])

@@ -139,8 +139,8 @@ def filterTest(lam=1.0):
         #ka = np.sum(diagFilter(ks)) / (ks.shape[0]*ks.shape[1])**0.5
         #kb =  np.sum(diagFilter(ks)) / (countGene(a) * countGene(b))**0.5
         
-        k = np.sum(ks) /4 /max(ks.shape[0], ks.shape[1])
         #4 is the max ks sum across rows
+        k = np.sum(ks) /4 /max(ks.shape[0], ks.shape[1])
         #ka = np.sum(diagFilter(ks)) /4 /max(ks.shape[0], ks.shape[1])
         
         #print ka
@@ -151,7 +151,7 @@ def filterTest(lam=1.0):
     print 
 
 
-def pcaTest():
+def pcaTest(exclude=[]):
     from sklearn.decomposition import KernelPCA
     import matplotlib.pyplot as plt
     from config import genomeTags
@@ -160,7 +160,7 @@ def pcaTest():
         k = pickle.load(f)
     gids = list(set([i[0] for i in k.keys()] + [i[1] for i in k.keys()]))
     
-    exclude = ['3068','8']
+    exclude += ['3068','8']
     for e in exclude:
         gids.remove(e)
     print gids
@@ -187,11 +187,8 @@ def pcaTest():
         plt.text(x[i,0], x[i,1],genomeTags[g])
     #plt.show()
 
-    
 
-if __name__=='__main__':
-    #print kernel2(25571, 11691)
-    
+def lambdaTest():
     import matplotlib.pyplot as plt
     for i,lam in enumerate([1,]):
         filterTest(lam)
@@ -201,3 +198,21 @@ if __name__=='__main__':
         plt.title('diag only, $e^{-%.1f*ks}$' % lam)
         pcaTest()
     plt.show()
+
+if __name__=='__main__':
+    import matplotlib.pyplot as plt
+    filterTest(lam=32.0)
+    excludes = [[ ],
+                ['4242',], 
+                ['4242','28918'], 
+                ['4242','28918', '7057'], 
+                ['4242','28918', '7057', '8143'], 
+                ['4242','28918', '7057', '8143', '28041'], 
+                ]
+    for i,e in enumerate(excludes):
+        plt.subplot(2,3,i+1)
+        pcaTest(e)
+        plt.grid(color='grey', linestyle='-', linewidth=0.3)
+    plt.show()
+    #print kernel2(25571, 11691)
+    
