@@ -8,7 +8,7 @@ def main():
     level = 2
     #ids = ['11691','25571','7057','28918','4242','28814','28041','8143']    
     ids = ['28814','28918','8143','4242','7057','11691','28041','25571']
-    x,tags = pca(level, ids)
+    x,tags,m = pca(level, ids)
     sizes = []
     for i in ids:
         with open(metaFiles[i]) as f:
@@ -31,9 +31,17 @@ def main():
         for i, pt in enumerate(x):
             s = 100.0 * sizes[i]/ max(sizes)
             ax.scatter(pt[0], pt[1])#, s=s)
-            ax.text(pt[0], pt[1], tags[i])
+            if tags[i] == 'human':
+                ax.text(pt[0], pt[1], tags[i],
+                fontsize=14,
+                horizontalalignment='right')
+            else:
+                ax.text(pt[0], pt[1], tags[i],
+                fontsize=14)
         ax.axis('equal')
         ax.grid(color='grey', linestyle='-', linewidth=0.3)
+        plt.figure()
+        plt.imshow(m)
         plt.show()   
         
     elif mode == 'json':

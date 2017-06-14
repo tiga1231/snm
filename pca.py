@@ -8,15 +8,15 @@ from sklearn.decomposition import KernelPCA,PCA
 np.set_printoptions(precision=2)
 
 
-def pca(level, ids):
+def pca(level, ids, lam=2):
     if level==2:
-        return pca2(ids)
+        return pca2(ids, lam)
     if level==3:
         return pca3(ids)
 
         
-def pca2(ids):
-    x = genomeKernelMatrix(ids)
+def pca2(ids, lam=2):
+    x = genomeKernelMatrix(ids, lam)
     print x
     pca = KernelPCA(n_components=2,kernel='precomputed')
     #pca = PCA(n_components=n)
@@ -38,7 +38,7 @@ def pca2(ids):
     #print x
     #print t
     #print pca.explained_variance_ratio_
-    return xCap, tags
+    return xCap, tags, x
     
     
 def pca3(ids):

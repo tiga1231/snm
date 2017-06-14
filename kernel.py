@@ -19,18 +19,18 @@ def isDataLine(line):
                 )
                 
                 
-def genomeKernelMatrix(ids):
+def genomeKernelMatrix(ids, lam=2):
     n = len(ids)
     x = np.zeros([n,n])
     for i in range(n):
         for j in range(n):
-            k = genomeKernel(ids[i], ids[j])
+            k = genomeKernel(ids[i], ids[j], lam)
             x[i,j] = k
             x[j,i] = k
     return x
 
 
-def genomeKernel(a,b):
+def genomeKernel(a,b, lam=2):
     '''genome level comparison'''
     a,b = str(a), str(b)
     if a==b:
@@ -46,7 +46,7 @@ def genomeKernel(a,b):
                     or line.startswith('NA')
                     or line.startswith('undef')):
                 x = float(line.split('\t')[0])
-                res += exp(-x * 2)
+                res += exp(-x * lam)
 
     geneCount = countGene(a) * countGene(b)
     res = res / geneCount**0.5
