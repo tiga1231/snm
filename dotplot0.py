@@ -18,8 +18,9 @@ def getOffset(X, index=1):
     return res
 
 
-with open('2460_32770.CDS-CDS.last.tdd10.cs0.filtered.dag.all.go_D20_g10_A5.aligncoords.gcoords.ks.txt') as f:
+#with open('2460_32770.CDS-CDS.last.tdd10.cs0.filtered.dag.all.go_D20_g10_A5.aligncoords.gcoords.ks.txt') as f:
 #with open('19306_2460.CDS-CDS.last.tdd10.cs0.filtered.dag.all.go_D20_g10_A5.aligncoords.gcoords.ks.txt') as f:
+with open('data/ks/7057_8143.CDS-CDS.dcmegablast.tdd10.cs0.filtered.dag.all.go_D20_g10_A5.aligncoords.gcoords.ks') as f:
     f = (l.replace('||',' ') for l in f)
     X = np.loadtxt(f, dtype = np.str)
 
