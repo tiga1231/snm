@@ -8,6 +8,10 @@ def main():
     level = 2
     #ids = ['11691','25571','7057','28918','4242','28814','28041','8143']    
     ids = ['28814','8143','7057','11691','28041','25571']
+    ids = ['2460', '32770', '35091', '35092', '32801', 
+            '19106', '32826', '32958', '32902', '35095', 
+            '35093', '32903', '32865', '19306', '32904', 
+            '32788', '35088']
     x,tags,m = pca(level, ids)
     
     #display options
@@ -23,7 +27,7 @@ def main():
         ax = fig.add_subplot(111)
         for i, pt in enumerate(x):
             ax.scatter(pt[0], pt[1], s=80)
-            if tags[i] in ['human','dog']:
+            if i%2==0:
                 ax.text(pt[0], pt[1], tags[i],
                 fontsize=14,
                 horizontalalignment='right')

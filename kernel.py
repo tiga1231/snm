@@ -33,6 +33,7 @@ def genomeKernelMatrix(ids, lam=2):
 def genomeKernel(a,b, lam=2):
     '''genome level comparison'''
     a,b = str(a), str(b)
+    print a,b
     if a==b:
         return 1
     elif a+'_'+b in ksFiles:
@@ -42,9 +43,7 @@ def genomeKernel(a,b, lam=2):
     res = 0
     with open(fn) as f:
         for line in f:
-            if not (line.startswith('#')
-                    or line.startswith('NA')
-                    or line.startswith('undef')):
+            if isDataLine(line):
                 x = float(line.split('\t')[0])
                 res += exp(-x * lam)
 
@@ -122,7 +121,7 @@ def diagFilter(img, anti=False):
     return result
 
 
-def filterTest(lam=1.0):
+def filterTest(lam=1.0, mode='all'):
     '''compute similarity w/ or w/o diag and dump a dict to .pkl'''
     import matplotlib.pyplot as plt
     npz = np.load('data/ks_small.npz')
@@ -139,16 +138,17 @@ def filterTest(lam=1.0):
         #ka = np.sum(diagFilter(ks)) / (ks.shape[0]*ks.shape[1])**0.5
         #kb =  np.sum(diagFilter(ks)) / (countGene(a) * countGene(b))**0.5
         
-        #4 is the max ks sum across rows
-        k = np.sum(ks) /4 /max(ks.shape[0], ks.shape[1])
-        #ka = np.sum(diagFilter(ks)) /4 /max(ks.shape[0], ks.shape[1])
-        
-        #print ka
+        if mode == 'all':
+            #4 is the max ks sum across rows
+            k = np.sum(ks) /4 /max(ks.shape[0], ks.shape[1])
+        elif mode == 'diag':
+            k = np.sum(diagFilter(ks)) /3.3 /max(ks.shape[0], ks.shape[1])
+        elif mode == 'anti':
+            k = np.sum(diagFilter(ks, True)) /3.3 /max(ks.shape[0], ks.shape[1])
         kk[(a,b)] = k
     print 'dumping data/ks.pkl'
     with open('data/ks.pkl','wb') as f:
         pickle.dump(kk, f)
-    print 
 
 
 def pcaTest(exclude=[]):
@@ -159,13 +159,15 @@ def pcaTest(exclude=[]):
     with open('data/ks.pkl','rb') as f:
         k = pickle.load(f)
     gids = list(set([i[0] for i in k.keys()] + [i[1] for i in k.keys()]))
-    
-    exclude += ['3068','8']
-    for e in exclude:
-        gids.remove(e)
+    gids = ['2460', '32770', '35091', '35092', '32801', 
+            '19106', '32826', '32958', '32902', '35095', 
+            '35093', '32903', '32865', '19306', '32904', 
+            '32788', '35088'
+            ]
+    tags = np.array([genomeTags[i] for i in gids])
     print gids
-    print [genomeTags[i] for i in gids]
-    m = np.zeros([len(gids), len(gids)])
+    print tags
+    m = np.eye(len(gids), len(gids))
     for i,x in enumerate(gids):
         for j,y in enumerate(gids):
             if i == j:
@@ -176,16 +178,50 @@ def pcaTest(exclude=[]):
             elif (y,x) in k:
                 m[i,j] = k[(y,x)]
                 m[j,i] = k[(y,x)]
-    
+    #sort matrix by similarity
+    '''
+    for i in range(len(m[0])-1):
+        order = sorted( zip(m[i:, i:][0], range(len(m[0])-i)) , reverse=True)
+        order =  [o[1] for o in order]
+        m[i:,i:] = m[i:,i:][order]
+        m[i:,i:] = m[i:,i:][:,order]
+        tags[i:] = tags[i:][order] 
+    '''
     np.set_printoptions(precision=2)
     print m
+    plt.subplot(121)
+    plt.imshow(m, origin='lower')
+    
+    plt.xticks(range(len(gids)),tags, rotation=90)
+    plt.yticks(range(len(gids)),tags)
     pca = KernelPCA(kernel='precomputed',
-                    n_components=2)
+                    n_components=3)
+
     x = pca.fit_transform(m)
+
+    print x
+    for i in x:
+        print i[0]
+    print '-'*20
+    for i in x:
+        print i[1]
+    print '-'*20
+    for i in x:
+        print i[2]
+    for i in tags:
+        print i.split('.')[-1]
+    plt.subplot(122)
+    color = ['#a6cee3'] * 8
+    color += ['#1f78b4'] * 5
+    color += ['#b2df8a'] * 3
+    color += ['#33a02c'] * 1
     for i,g in enumerate(gids):
-        plt.scatter(x[i,0], x[i,1])
-        plt.text(x[i,0], x[i,1],genomeTags[g])
-    #plt.show()
+        plt.scatter(x[i,0], x[i,1], c=color[i])
+        if i%2==0:
+            plt.text(x[i,0], x[i,1],genomeTags[g], horizontalalignment='right')
+        else:
+            plt.text(x[i,0], x[i,1],genomeTags[g])
+    plt.axis('equal')
 
 
 def lambdaTest():
@@ -199,8 +235,7 @@ def lambdaTest():
         pcaTest()
     plt.show()
 
-if __name__=='__main__':
-    import matplotlib.pyplot as plt
+def subsetTest():
     filterTest(lam=32.0)
     excludes = [[ ],
                 ['4242',], 
@@ -214,5 +249,12 @@ if __name__=='__main__':
         pcaTest(e)
         plt.grid(color='grey', linestyle='-', linewidth=0.3)
     plt.show()
-    #print kernel2(25571, 11691)
     
+
+if __name__=='__main__':
+    import matplotlib.pyplot as plt
+    for mode in ['all', 'diag', 'anti']:
+        plt.figure()
+        filterTest(1.0, mode)
+        pcaTest()
+    plt.show()

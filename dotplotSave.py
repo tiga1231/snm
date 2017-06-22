@@ -25,12 +25,21 @@ def length(gid):
  
 def main():
     imgs = {}
+    gids = ['2460', '32770', '35091', '35092', '32801', 
+            '19106', '32826', '32958', '32902', '35095', 
+            '35093', '32903', '32865', '19306', '32904', 
+            '32788', '35088'
+            ]
     for k in ksFiles.keys():
         global t0
         t0 = time()
 
         ksf = ksFiles[k]
+        print k
         gid1, gid2 = k.split('_')
+        if gid1 not in gids or gid2 not in gids\
+            or gid1==gid2:
+	    continue
         
         print '-' * 20
         print gid1, gid2
@@ -64,20 +73,18 @@ def main():
         with open(ksf) as f:
             f = (l.replace('||',' ') for l in f)#slow
             X = np.loadtxt(f, dtype = np.str)
+            if len(X) == 0:
+                print gid1, gid2, 'empty'
+                img = np.empty([1,1])
+                img[:] = np.Inf
+                imgs[gid1+'_'+gid2] = img
+                continue
         tick('2')
 
-        try:
-            #0:ks, larger = more disimilar
-            #remove not well-defined rows
-            X = X[X[:,0]!='NA']
-            X = X[X[:,0]!='undef']
-        except IndexError:
-            # if no rows at all
-            print gid1, gid2, 'empty'
-            img = np.empty([1,1])
-            img[:] = np.Inf
-            imgs[gid1+'_'+gid2] = img
-            continue
+        #0:ks, larger = more disimilar
+        #remove not well-defined rows
+        X = X[X[:,0]!='NA']
+        X = X[X[:,0]!='undef']
 
         ks = X[:,0].astype(np.float)
         #ks[ks==0] = 0.1
@@ -100,7 +107,7 @@ def main():
         x2 = x2 + shift2
         
         #scale to image coordinate
-        scale = 1e6
+        scale = 1e5
         x1 = (x1 / scale).astype(np.int)
         x2 = (x2 / scale).astype(np.int)
         w = int(length(gid1) / scale) + 1
@@ -137,16 +144,16 @@ def main():
         imgs[gid1+'_'+gid2] = img
         
         tick('5')
-   
-        '''
+        '''    
         plt.imshow(img, cmap='Greys_r', origin='lower')
         plt.colorbar()
         #plt.savefig(gid1 + '_' + gid2 + '.png')
         #plt.hist(ks, bins = 50)
-        plt.show()'''
-
+        plt.show()
+        '''
         #break
     
+    print imgs
     print 'saving file...'
     with open('data/ks_small.npz', 'w') as f:
         np.savez_compressed(f, **imgs)

@@ -6,11 +6,16 @@ ksRoot = dataRoot + 'ks/'
 metaRoot = dataRoot + 'meta/'
 fastaRoot = dataRoot + 'fasta/'
 
-genomeTags = dataRoot + 'myTags.txt'
-with open(genomeTags) as f:
-    genomeTags = dict(line.replace('\n','').split(',') for line in f.readlines())
+genomeTagFile = dataRoot + 'myTags.txt'
+with open(genomeTagFile) as f:
+    genomeTags = dict(line.replace('\n','').split(',') 
+                        for line in f.readlines())
+genomeTagFile = dataRoot + 'plasmodiumTags.txt'
+with open(genomeTagFile) as f:
+    genomeTags.update( dict(line.replace('\n','').split(',')[::-1] 
+                        for line in f.readlines()) )
 
-ksFiles = glob(ksRoot+'*')
+ksFiles = glob(ksRoot+'*.ks')
 ksFiles = dict([
     (os.path.split(f)[1].split('.')[0], f)        
     for f in ksFiles])
